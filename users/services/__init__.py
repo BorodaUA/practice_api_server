@@ -1,3 +1,4 @@
+from uuid import UUID
 import abc
 
 from passlib.hash import argon2
@@ -5,6 +6,7 @@ from sqlalchemy.orm import scoped_session
 
 from users.models import User
 from users.services.serializers import UserSerializer
+from users.utils.exceptions import UserNotFoundError
 from utils.logging import setup_logging
 
 
@@ -23,12 +25,20 @@ class AbstractUserService(metaclass=abc.ABCMeta):
         """Add User object to the db."""
         return self._add_user(user)
 
+    def delete_user(self, id: UUID) -> None:
+        """Delete User object from the db."""
+        return self._delete_user(id)
+
     @abc.abstractclassmethod
     def _get_users(self) -> None:
         pass
 
     @abc.abstractclassmethod
     def _add_user(self, user: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _delete_user(self, id: UUID) -> None:
         pass
 
 
@@ -52,3 +62,20 @@ class UserService(AbstractUserService):
     def _hash_password(self, password: str) -> str:
         """Return password hashed with argon2 algorithm."""
         return argon2.using(rounds=4).hash(password)
+
+    def _delete_user(self, id: UUID) -> None:
+        if self._user_exists(column='id', value=id):
+            user = self.session.query(User).filter(User.id == id).one()
+            # Soft deleting User object.
+            user.delete()
+            self.session.commit()
+            self._log.debug(f'User with id: "{id}" deleted.')
+
+    def _user_exists(self, column: str, value: UUID) -> bool:
+        """Check if User object exists in the db."""
+        self._log.debug(f'Checking if User with {column}: {value} exists.')
+        q = self.session.query(User).filter(User.__table__.columns[column] == value)
+        user_exists = self.session.query(q.exists()).scalar()
+        if not user_exists:
+            raise UserNotFoundError(f'User with {column}: {value} not found.')
+        return True
