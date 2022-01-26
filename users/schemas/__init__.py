@@ -72,5 +72,3 @@ class UserOutputSchema(UserBaseSchema):
     """User Output schema for User model."""
 
     id = fields.UUID()
-    is_activated = fields.Boolean()
-    created_at = fields.DateTime()

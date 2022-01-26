@@ -1,5 +1,6 @@
 import abc
 
+from passlib.hash import argon2
 from sqlalchemy.orm import scoped_session
 
 from users.models import User
@@ -40,9 +41,14 @@ class UserService(AbstractUserService):
 
     def _add_user(self, user: dict) -> dict:
         user = self.validator.deserialize_user_data(user)
+        user['password'] = self._hash_password(password=user['password'])
         user = User(**user)
         self._log.debug(f'Creating user with username: {user.username}')
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)
         return self.validator.serialize_user_data(user=user)
+
+    def _hash_password(self, password: str) -> str:
+        """Return password hashed with argon2 algorithm."""
+        return argon2.using(rounds=4).hash(password)

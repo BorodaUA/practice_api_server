@@ -12,8 +12,7 @@ from users.utils.errors import user_validation_error_handler
 def create_app(config_name: str) -> Flask:
     app = Flask(__name__)
     app.config.from_object(configs[config_name])
-    app.register_blueprint(users_bp, url_prefix=f'/api/v{ApiVersion.V1.value}')
-
+    app.register_blueprint(users_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{users_bp.url_prefix}')
     app.register_error_handler(ValidationError, user_validation_error_handler)
 
     @app.before_request
