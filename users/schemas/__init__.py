@@ -72,3 +72,8 @@ class UserOutputSchema(UserBaseSchema):
     """User Output schema for User model."""
 
     id = fields.UUID()
+
+
+class UserUpdateSchema(UserBaseSchema):
+    """User Update schema for User model."""
+    pass

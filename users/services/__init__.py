@@ -12,10 +12,10 @@ from utils.logging import setup_logging
 
 class AbstractUserService(metaclass=abc.ABCMeta):
 
-    def __init__(self, session: scoped_session, validator: UserSerializer = UserSerializer) -> None:
+    def __init__(self, session: scoped_session, method: str, validator: UserSerializer = UserSerializer) -> None:
         self._log = setup_logging(self.__class__.__name__)
         self.session = session
-        self.validator = validator()
+        self.validator = validator(method=method)
 
     def get_users(self) -> list[dict]:
         """Return list of User objects from the db."""
@@ -33,6 +33,10 @@ class AbstractUserService(metaclass=abc.ABCMeta):
         """Return User object from the db filtered by id."""
         return self._get_user_by_id(id)
 
+    def update_user(self, id: UUID, user: dict) -> dict:
+        """Return updated User object from the db."""
+        return self._update_user(id, user)
+
     @abc.abstractclassmethod
     def _get_users(self) -> None:
         pass
@@ -47,6 +51,10 @@ class AbstractUserService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _get_user_by_id(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _update_user(self, id: UUID, user: dict) -> None:
         pass
 
 
@@ -95,3 +103,15 @@ class UserService(AbstractUserService):
     def _get_user_by_id(self, id: UUID) -> dict:
         user = self._get_user(column='id', value=id)
         return self.validator.serialize_user_data(user=user)
+
+    def _update_user(self, id: UUID, user: dict) -> dict:
+        user = self.validator.deserialize_user_data(user)
+        db_user = self._get_user(column='id', value=id)
+        db_user.username = user['username']
+        db_user.first_name = user['first_name']
+        db_user.last_name = user['last_name']
+        db_user.email = user['email']
+        db_user.phone_number = user['phone_number']
+        self.session.commit()
+        self.session.refresh(db_user)
+        return self.validator.serialize_user_data(user=db_user)
