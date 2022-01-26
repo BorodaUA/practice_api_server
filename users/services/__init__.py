@@ -29,6 +29,10 @@ class AbstractUserService(metaclass=abc.ABCMeta):
         """Delete User object from the db."""
         return self._delete_user(id)
 
+    def get_user_by_id(self, id: UUID) -> dict:
+        """Return User object from the db filtered by id."""
+        return self._get_user_by_id(id)
+
     @abc.abstractclassmethod
     def _get_users(self) -> None:
         pass
@@ -39,6 +43,10 @@ class AbstractUserService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _delete_user(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_user_by_id(self, id: UUID) -> None:
         pass
 
 
@@ -79,3 +87,11 @@ class UserService(AbstractUserService):
         if not user_exists:
             raise UserNotFoundError(f'User with {column}: {value} not found.')
         return True
+
+    def _get_user(self, column: str, value: UUID | str) -> dict:
+        if self._user_exists(column=column, value=value):
+            return self.session.query(User).filter(User.__table__.columns[column] == value).one()
+
+    def _get_user_by_id(self, id: UUID) -> dict:
+        user = self._get_user(column='id', value=id)
+        return self.validator.serialize_user_data(user=user)
