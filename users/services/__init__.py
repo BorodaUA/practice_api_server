@@ -1,3 +1,4 @@
+from typing import Type
 from uuid import UUID
 import abc
 
@@ -5,6 +6,7 @@ from passlib.hash import argon2
 from sqlalchemy.orm import scoped_session
 
 from users.models import User
+from users.schemas import UserBaseSchema
 from users.services.serializers import UserSerializer
 from users.utils.exceptions import UserNotFoundError
 from utils.logging import setup_logging
@@ -12,10 +14,15 @@ from utils.logging import setup_logging
 
 class AbstractUserService(metaclass=abc.ABCMeta):
 
-    def __init__(self, session: scoped_session, method: str, validator: UserSerializer = UserSerializer) -> None:
+    def __init__(
+        self, session: scoped_session,
+        validator: UserSerializer = UserSerializer,
+        input_schema: Type[UserBaseSchema] | None = None,
+        output_schema: Type[UserBaseSchema] | None = None,
+            ) -> None:
         self._log = setup_logging(self.__class__.__name__)
         self.session = session
-        self.validator = validator(method=method)
+        self.validator = validator(input_schema, output_schema)
 
     def get_users(self) -> list[dict]:
         """Return list of User objects from the db."""
@@ -37,6 +44,10 @@ class AbstractUserService(metaclass=abc.ABCMeta):
         """Return updated User object from the db."""
         return self._update_user(id, user)
 
+    def get_user_by_username(self, username: str) -> User:
+        """Return User object from the db filtered by username."""
+        return self._get_user_by_username(username)
+
     @abc.abstractclassmethod
     def _get_users(self) -> None:
         pass
@@ -57,23 +68,27 @@ class AbstractUserService(metaclass=abc.ABCMeta):
     def _update_user(self, id: UUID, user: dict) -> None:
         pass
 
+    @abc.abstractclassmethod
+    def _get_user_by_username(user: dict) -> None:
+        pass
+
 
 class UserService(AbstractUserService):
 
     def _get_users(self) -> list[dict]:
         self._log.debug('Getting all users from the db.')
         users = self.session.query(User).all()
-        return self.validator.serialize_users_data(users)
+        return self.validator.serialize(users)
 
     def _add_user(self, user: dict) -> dict:
-        user = self.validator.deserialize_user_data(user)
+        user = self.validator.deserialize(user)
         user['password'] = self._hash_password(password=user['password'])
         user = User(**user)
         self._log.debug(f'Creating user with username: {user.username}')
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)
-        return self.validator.serialize_user_data(user=user)
+        return self.validator.serialize(data=user)
 
     def _hash_password(self, password: str) -> str:
         """Return password hashed with argon2 algorithm."""
@@ -102,10 +117,10 @@ class UserService(AbstractUserService):
 
     def _get_user_by_id(self, id: UUID) -> dict:
         user = self._get_user(column='id', value=id)
-        return self.validator.serialize_user_data(user=user)
+        return self.validator.serialize(data=user)
 
     def _update_user(self, id: UUID, user: dict) -> dict:
-        user = self.validator.deserialize_user_data(user)
+        user = self.validator.deserialize(user)
         db_user = self._get_user(column='id', value=id)
         db_user.username = user['username']
         db_user.first_name = user['first_name']
@@ -114,4 +129,11 @@ class UserService(AbstractUserService):
         db_user.phone_number = user['phone_number']
         self.session.commit()
         self.session.refresh(db_user)
-        return self.validator.serialize_user_data(user=db_user)
+        return self.validator.serialize(data=db_user)
+
+    def _get_user_by_username(self, username: str) -> User:
+        return self._get_user(column='username', value=username)
+
+    def _verify_password(self, password: str, password_hash: str) -> bool:
+        """Return bool of verifying password with argon2 algorithm."""
+        return argon2.verify(password, password_hash)

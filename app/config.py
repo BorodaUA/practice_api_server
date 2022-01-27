@@ -11,6 +11,7 @@ class BaseConfig:
     SECRET_KEY = os.getenv(key='SECRET_KEY', default='very secret key')
     APP_HOST = os.getenv(key='APP_HOST', default='0.0.0.0')
     APP_PORT = os.getenv(key='APP_PORT', default=4800)
+    # DB configuration variables.
     POSTGRES_DIALECT_DRIVER = os.getenv(key='POSTGRES_DIALECT_DRIVER', default='postgresql+psycopg2')
     POSTGRES_DB_USERNAME = os.getenv(key='POSTGRES_DB_USERNAME', default='postgres')
     POSTGRES_DB_PASSWORD = os.getenv(key='POSTGRES_DB_PASSWORD', default='postgres')
@@ -21,6 +22,10 @@ class BaseConfig:
         f'{POSTGRES_DIALECT_DRIVER}://{POSTGRES_DB_USERNAME}:{POSTGRES_DB_PASSWORD}@'
         f'{POSTGRES_DB_HOST}:{POSTGRES_DB_PORT}/{POSTGRES_DB_NAME}'
     )
+    # JWT configuration variables.
+    JWT_SECRET_KEY = os.getenv(key='JWT_SECRET_KEY', default='jwt secret key')
+    JWT_TOKEN_LOCATION = os.getenv(key='JWT_TOKEN_LOCATION', default='cookies')
+    JWT_COOKIE_CSRF_PROTECT = (os.getenv(key='JWT_COOKIE_CSRF_PROTECT', default=True) == 'True')
 
 
 class DevelopmentConfig(BaseConfig):
