@@ -67,13 +67,13 @@ class AuthService(AbstractAuthService):
         db_user = self.user_service._get_user_by_username(username=user['username'])
         if self.user_service._verify_password(user['password'], db_user.password):
             access_token = self._create_jwt_token(
-                identity=db_user.username,
+                identity=db_user.id,
                 token_type=AuthJWTConstants.ACCESS_TOKEN_NAME.value,
                 time_amount=AuthJWTConstants.TOKEN_EXPIRE_60.value,
                 time_unit=AuthJWTConstants.MINUTES.value,
             )
             refresh_token = self._create_jwt_token(
-                identity=db_user.username,
+                identity=db_user.id,
                 token_type=AuthJWTConstants.REFRESH_TOKEN_NAME.value,
                 time_amount=AuthJWTConstants.TOKEN_EXPIRE_7.value,
                 time_unit=AuthJWTConstants.DAYS.value,
@@ -98,17 +98,17 @@ class AuthService(AbstractAuthService):
         return CREATE_TOKEN_METHODS[token_type](identity=identity, expires_delta=expires_delta)
 
     def _me(self) -> dict:
-        username = get_jwt_identity()
-        db_user = self.user_service.get_user_by_username(username=username)
+        user_id = get_jwt_identity()
+        db_user = self.user_service._get_user(column='id', value=user_id)
         self._log.debug(f'User with username: {db_user.username} currently logged in.')
         return self.validator.serialize(data=db_user)
 
     def _logout(self) -> Response:
-        username = get_jwt_identity()
+        user_id = get_jwt_identity()
         response_message = {'message': 'User successfully logged out.'}
         self.validator.serialize(data=response_message)
         response = jsonify(response_message)
         unset_access_cookies(response=response)
         unset_refresh_cookies(response=response)
-        self._log.debug(f'User with username: {username} successfully logged out.')
+        self._log.debug(f'User with id: {user_id} successfully logged out.')
         return response

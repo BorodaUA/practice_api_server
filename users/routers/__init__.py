@@ -2,6 +2,8 @@ from uuid import UUID
 
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
+from flask_jwt_extended import jwt_required
+
 from common.constants.http import HttpStatusCodeConstants
 from users.schemas import UserInputSchema, UserOutputSchema, UserUpdateSchema
 from users.services import UserService
@@ -31,6 +33,7 @@ def post_users() -> Response:
 
 
 @users_bp.delete('/<uuid:id>')
+@jwt_required()
 def delete_user(id: UUID) -> Response:
     """DELETE '/users/{id}' endpoint view function."""
     UserService(session=g.db_session).delete_user(id=id)
@@ -48,6 +51,7 @@ def get_user(id: UUID) -> Response:
 
 
 @users_bp.put('/<uuid:id>')
+@jwt_required()
 def put_user(id: UUID) -> Response:
     """PUT '/users/{id}' endpoint view function."""
     user = UserService(

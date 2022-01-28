@@ -16,6 +16,7 @@ from users.utils.exceptions import (
     user_not_found_error_handler,
     user_validation_error_handler,
 )
+from utils.jwt import generic_token_verifier
 
 
 def create_app(config_name: str) -> Flask:
@@ -23,6 +24,7 @@ def create_app(config_name: str) -> Flask:
     app.config.from_object(configs[config_name])
     jwt = JWTManager()
     jwt.init_app(app)
+    jwt.token_verification_loader(generic_token_verifier)
 
     app.register_blueprint(users_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{users_bp.url_prefix}')
     app.register_blueprint(auth_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{auth_bp.url_prefix}')
