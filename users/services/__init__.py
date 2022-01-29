@@ -80,15 +80,20 @@ class UserService(AbstractUserService):
         users = self.session.query(User).all()
         return self.validator.serialize(users)
 
-    def _add_user(self, user: dict) -> dict:
-        user = self.validator.deserialize(user)
+    def _save_user_data(self, user: dict) -> User:
+        """Saves and return User data in the db."""
         user['password'] = self._hash_password(password=user['password'])
         user = User(**user)
         self._log.debug(f'Creating user with username: {user.username}')
         self.session.add(user)
         self.session.commit()
         self.session.refresh(user)
-        return self.validator.serialize(data=user)
+        return user
+
+    def _add_user(self, user: dict) -> dict:
+        user = self.validator.deserialize(data=user)
+        db_user = self._save_user_data(user=user)
+        return self.validator.serialize(data=db_user)
 
     def _hash_password(self, password: str) -> str:
         """Return password hashed with argon2 algorithm."""

@@ -6,11 +6,16 @@ from sqlalchemy import engine_from_config, pool
 from app.config import BaseConfig
 from users.models import Base as UserBase
 
+POSTGRES_DB_URL = (
+    f'{BaseConfig.POSTGRES_DIALECT_DRIVER}://{BaseConfig.POSTGRES_DB_USERNAME}:'
+    f'{BaseConfig.POSTGRES_DB_PASSWORD}@{BaseConfig.POSTGRES_DB_HOST}:'
+    f'{BaseConfig.POSTGRES_DB_PORT}/{BaseConfig.POSTGRES_DB_NAME}'
+)
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRES_DB_URL", BaseConfig.POSTGRES_DB_URL)
+config.set_section_option(section, "POSTGRES_DB_URL", POSTGRES_DB_URL)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)

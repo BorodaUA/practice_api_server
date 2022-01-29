@@ -8,7 +8,7 @@ from app.config import configs
 from auth.routers import auth_bp
 from auth.utils.exceptions import AuthUserInvalidPasswordException, invalid_user_password_error_handler
 from common.constants.api import ApiVersion
-from db import get_session
+from db import create_db_engine, get_session
 from users.routers import users_bp
 from users.utils.exceptions import (
     UserNotFoundError,
@@ -34,10 +34,12 @@ def create_app(config_name: str) -> Flask:
     app.register_error_handler(IntegrityError, user_duplicate_error_handler)
     app.register_error_handler(AuthUserInvalidPasswordException, invalid_user_password_error_handler)
 
+    app.db_engine = create_db_engine(config=app.config, echo=app.config['SQLALCHEMY_ENGINE_ECHO'])
+
     @app.before_request
     def set_session() -> None:
         """Adding sqlalchemy session to the flask g object."""
-        g.db_session = get_session()
+        g.db_session = get_session(engine=app.db_engine)
 
     @app.teardown_appcontext
     def remove_session(exception=None) -> None:
