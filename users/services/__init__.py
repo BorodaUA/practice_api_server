@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Type
 from uuid import UUID
 import abc
@@ -82,6 +83,7 @@ class UserService(AbstractUserService):
 
     def _save_user_data(self, user: dict) -> User:
         """Saves and return User data in the db."""
+        user = deepcopy(user)
         user['password'] = self._hash_password(password=user['password'])
         user = User(**user)
         self._log.debug(f'Creating user with username: {user.username}')

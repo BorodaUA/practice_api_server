@@ -86,7 +86,7 @@ class AuthService(AbstractAuthService):
             set_refresh_cookies(response, refresh_token)
             self._log.debug(f'User with username: {db_user.username} logged in.')
             return response
-        raise AuthUserInvalidPasswordException('Incorect username or password.')
+        raise AuthUserInvalidPasswordException('Incorrect username or password.')
 
     def _create_jwt_token(self, identity: str, token_type: str, time_amount: int, time_unit: str) -> str:
         """Return access or refresh token with set parameters."""
