@@ -56,7 +56,7 @@ class GetAuthMeTestCase(TestMixin, TestCase):
 
     def test_get_auth_me_with_valid_credentials(self) -> None:
         """Test Post '/auth/me' endpoint with valid authorization cookies in the request."""
-        self.authorize_user()
+        self.add_authenticated_user()
         response = self.client.get(self.url)
         response_data = response.get_json()
         expected_result = response_test_user_data.RESPONSE_USER_TEST_DATA
@@ -83,7 +83,7 @@ class PostAuthLogoutTestCase(TestMixin, TestCase):
 
     def test_post_auth_logout_user_signed_id(self) -> None:
         """Test Post '/auth/logout' endpoint with valid authorization cookies in the request."""
-        self.authorize_user()
+        self.add_authenticated_user()
         response = self.client.post(self.url)
         response_data = response.get_json()
         expected_result = response_auth_user_data.RESPONSE_USER_LOGOUT_MSG

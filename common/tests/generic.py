@@ -1,3 +1,6 @@
+from uuid import uuid4
+import random
+
 from flask import Config
 
 from sqlalchemy.engine.base import Engine
@@ -59,11 +62,15 @@ class TestMixin:
         Base.metadata.create_all(engine)
 
     def add_user_to_db(self) -> User:
-        """Create test user data in test db."""
-        return UserService(session=self.db_session)._save_user_data(user=request_test_user_data.ADD_USER_TEST_DATA)
+        """Create static test user data in test db."""
+        return self._add_user_to_db(user=request_test_user_data.ADD_USER_TEST_DATA)
 
-    def authorize_user(self):
-        """Add authorization cookies to the test client."""
+    def _add_user_to_db(self, user: dict) -> User:
+        """Create test user data in test db."""
+        return UserService(session=self.db_session)._save_user_data(user=user)
+
+    def add_authenticated_user(self) -> User:
+        """Add authorization cookies to the test client and return User object."""
         user = self.add_user_to_db()
         auth_service = AuthService(session=self.db_session)
         access_token = auth_service._create_jwt_token(
@@ -88,3 +95,16 @@ class TestMixin:
             key=AuthJWTConstants.JWT_REFRESH_COOKIE_NAME.value,
             value=refresh_token,
         )
+        return user
+
+    def add_random_user_to_db(self) -> User:
+        """Create random generated test user data in test db."""
+        ADD_RANDOM_USER_TEST_DATA = {
+            'username': f'test_john_{uuid4()}',
+            'first_name': 'john',
+            'last_name': 'bar',
+            'email': f'test_john_{uuid4()}@john.com',
+            'password': '12345678',
+            'phone_number': f'+38{random.randrange(1000000000, 9999999999)}',
+        }
+        return self._add_user_to_db(user=ADD_RANDOM_USER_TEST_DATA)

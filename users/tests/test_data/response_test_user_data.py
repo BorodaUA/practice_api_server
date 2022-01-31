@@ -23,3 +23,13 @@ RESPONSE_USER_DUPLICATE_USERNAME = {
     '"Users_username_key"\n'
     f'DETAIL:  Key (username)=({request_test_user_data.ADD_USER_TEST_DATA["username"]}) already exists.\n'
 }
+RESPONSE_USER_UPDATE_TEST_DATA = {
+    'id': ANY,
+    'username': request_test_user_data.UPDATE_USER_TEST_DATA['username'],
+    'first_name': request_test_user_data.UPDATE_USER_TEST_DATA['first_name'],
+    'last_name': request_test_user_data.UPDATE_USER_TEST_DATA['last_name'],
+    'email': request_test_user_data.UPDATE_USER_TEST_DATA['email'],
+    'phone_number': request_test_user_data.UPDATE_USER_TEST_DATA['phone_number'],
+}
+RESPONSE_USER_UNAUTHORIZED_UPDATE = {'msg': 'User claims verification failed'}
+RESPONSE_USER_DELETE = None
