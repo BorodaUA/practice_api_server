@@ -16,7 +16,7 @@ def login() -> Response:
     response = AuthService(
         session=g.db_session,
         input_schema=AuthUserInputSchema(many=False),
-        output_schema=AuthUserOutputSchema(many=False)
+        output_schema=AuthUserOutputSchema(many=False),
     ).login(request.get_json())
     return response, HttpStatusCodeConstants.HTTP_200_OK.value
 
