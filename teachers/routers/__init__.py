@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
 from common.constants.http import HttpStatusCodeConstants
@@ -34,3 +36,20 @@ def post_teachers() -> Response:
         output_schema=TeacherOutputSchema(many=False),
     ).add_teacher(data=request.get_json())
     return make_response(jsonify(teacher), HttpStatusCodeConstants.HTTP_201_CREATED.value)
+
+
+@teachers_bp.get('/<uuid:id>')
+def get_teacher(id: UUID) -> Response:
+    """GET '/teachers/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Teacher object.
+
+    Returns:
+    http response with json data: single Teacher model objects serialized with TeacherOutputSchema.
+    """
+    teacher = TeacherService(
+        session=g.db_session,
+        output_schema=TeacherOutputSchema(many=False),
+    ).get_teacher_by_id(id=id)
+    return make_response(jsonify(teacher), HttpStatusCodeConstants.HTTP_200_OK.value)

@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Type
+from uuid import UUID
 import abc
 
 from sqlalchemy.exc import IntegrityError
@@ -11,7 +12,7 @@ from students.models import Student
 from teachers.models import Teacher
 from teachers.schemas import TeacherBaseSchema
 from teachers.services.serializers import TeacherSerializer
-from teachers.utils.exceptions import StudentExistsError
+from teachers.utils.exceptions import StudentExistsError, TeacherNotFoundError
 from utils.exceptions import parse_integrity_error
 from utils.logging import setup_logging
 
@@ -47,12 +48,27 @@ class AbstractTeacherService(metaclass=abc.ABCMeta):
         """
         return self._add_teacher(data)
 
+    def get_teacher_by_id(self, id: UUID) -> dict:
+        """Query database and return single Teacher objects from the db filtered by id.
+
+        Args:
+            id: UUID of Teacher object.
+
+        Returns:
+        Teacher object serialized with TeacherOutputSchema.
+        """
+        return self._get_teacher_by_id(id)
+
     @abc.abstractclassmethod
     def _get_teachers(self) -> None:
         pass
 
     @abc.abstractclassmethod
     def _add_teacher(self, data: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_teacher_by_id(self, id: UUID) -> None:
         pass
 
 
@@ -131,3 +147,30 @@ class TeacherService(AbstractTeacherService, GenericService):
         else:
             card_id = self._create_card_id(card_id=TeacherModelConstants.CARD_ID_DEFAULT_NUMBER.value)
         return card_id
+
+    def _get_teacher_by_id(self, id: UUID) -> dict:
+        teacher = self._get_teacher(column='id', value=id)
+        return self.validator.serialize(data=teacher)
+
+    def _get_teacher(self, column: str, value: UUID | str) -> dict:
+        if self._teacher_exists(column=column, value=value):
+            return self.session.query(Teacher).filter(Teacher.__table__.columns[column] == value).one()
+
+    def _teacher_exists(self, column: str, value: str) -> bool:
+        """Check if Teacher object exists in the db.
+
+        Args:
+            column: name of column in the Teacher model.
+            value: to find in the Teacher model.
+        Raises:
+        TeacherNotFoundError exception if object not present in Teacher model.
+
+        Returns:
+        bool of Teacher object existence.
+        """
+        self._log.debug(f'Checking if Teacher with {column}: {value} exists.')
+        q = self.session.query(Teacher).filter(Teacher.__table__.columns[column] == value)
+        obj_exists = self.session.query(q.exists()).scalar()
+        if not obj_exists:
+            raise TeacherNotFoundError(f'Teacher with {column}: {value} not found.')
+        return True

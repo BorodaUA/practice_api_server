@@ -12,7 +12,12 @@ from db import create_db_engine, get_session
 from students.routers import students_bp
 from students.utils.exceptions import TeacherExistsError, teacher_exists_error_handler
 from teachers.routers import teachers_bp
-from teachers.utils.exceptions import StudentExistsError, student_exists_error_handler
+from teachers.utils.exceptions import (
+    StudentExistsError,
+    TeacherNotFoundError,
+    student_exists_error_handler,
+    teacher_not_found_error_handler,
+)
 from users.routers import users_bp
 from users.utils.exceptions import UserNotFoundError, user_not_found_error_handler, user_validation_error_handler
 from utils.exceptions import duplicate_error_handler
@@ -64,4 +69,5 @@ def error_handler_register(app: Flask) -> Flask:
     app.register_error_handler(AuthUserInvalidPasswordException, invalid_user_password_error_handler)
     app.register_error_handler(StudentExistsError, student_exists_error_handler)
     app.register_error_handler(TeacherExistsError, teacher_exists_error_handler)
+    app.register_error_handler(TeacherNotFoundError, teacher_not_found_error_handler)
     return app
