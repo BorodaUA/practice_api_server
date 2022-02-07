@@ -128,7 +128,7 @@ class StudentService(AbstractStudentService, GenericService):
         student = deepcopy(data)
         # check if teacher with id exists.
         self._is_teacher_exists(column='id', value=student['id'])
-        # Generating teacher card_id, if exception occurs during the saving process, rollback session and try again.
+        # Generating student card_id, if exception occurs during the saving process, rollback session and try again.
         while True:
             try:
                 student['card_id'] = self._create_student_card_id()

@@ -7,7 +7,7 @@ class StudentBaseSchema(Schema):
     """Student Base schema for Student model."""
 
     id = fields.UUID()
-    student_since = fields.Date()
+    student_since = fields.Date(required=True)
 
 
 class StudentInputSchema(StudentBaseSchema):

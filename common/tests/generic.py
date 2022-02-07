@@ -15,6 +15,7 @@ from common.tests.test_data.students import request_test_student_data
 from common.tests.test_data.teachers import request_test_teacher_data
 from common.tests.test_data.users import request_test_user_data
 from db import Base, get_session
+from students.models import Student
 from students.services import StudentService
 from teachers.models import Teacher
 from teachers.services import TeacherService
@@ -150,7 +151,7 @@ class TestMixin:
         teacher_data['id'] = random_user.id
         return self._add_teacher_to_db(data=teacher_data)
 
-    def add_student_to_db(self) -> Teacher:
+    def add_student_to_db(self) -> Student:
         """Test fixture adds static test Student data in the test db.
 
         Returns:
@@ -161,5 +162,27 @@ class TestMixin:
         student_data['id'] = user.id
         return self._add_student_to_db(data=student_data)
 
-    def _add_student_to_db(self, data: dict) -> Teacher:
+    def _add_student_to_db(self, data: dict) -> Student:
         return StudentService(session=self.db_session)._save_student_data(data)
+
+    def add_authenticated_student(self) -> Student:
+        """Test fixture adds authorization cookies to the test client and return Student object.
+
+        Returns:
+        Student object.
+        """
+        auth_user = self.add_authenticated_user()
+        student_data = request_test_student_data.ADD_STUDENT_TEST_DATA
+        student_data['id'] = auth_user.id
+        return self._add_student_to_db(data=student_data)
+
+    def add_random_student_to_db(self) -> Student:
+        """Test fixture adds random generated student data to the db.
+
+        Returns:
+        Student object with random data.
+        """
+        random_user = self.add_random_user_to_db()
+        student_data = request_test_student_data.ADD_STUDENT_TEST_DATA
+        student_data['id'] = random_user.id
+        return self._add_student_to_db(data=student_data)

@@ -23,3 +23,6 @@ RESPONSE_TEACHER_UPDATE_TEST_DATA = {
 RESPONSE_TEACHER_UNAUTHORIZED_UPDATE = {'msg': 'User claims verification failed'}
 RESPONSE_TEACHER_DELETE = None
 RESPONSE_TEACHER_UNAUTHORIZED_DELETE = {'msg': 'User claims verification failed'}
+RESPONSE_USER_ALREADY_STUDENT = {
+    'message': 'Teacher with id: {first_id} can not be created, because a Student with id: {second_id} already exists.'
+}
