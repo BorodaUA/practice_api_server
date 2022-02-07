@@ -70,6 +70,18 @@ class AbstractTeacherService(metaclass=abc.ABCMeta):
         """
         return self._delete_teacher(id)
 
+    def update_teacher(self, id: UUID, data: dict) -> dict:
+        """Update Teacher object in the database.
+
+        Args:
+            id: UUID of Teacher object.
+            data: dict from flask request json payload.
+
+        Returns:
+        Updated Teacher object from the database.
+        """
+        return self._update_teacher(id, data)
+
     @abc.abstractclassmethod
     def _get_teachers(self) -> None:
         pass
@@ -84,6 +96,10 @@ class AbstractTeacherService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _delete_teacher(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _update_teacher(self, id: UUID, data: dict) -> None:
         pass
 
 
@@ -167,7 +183,7 @@ class TeacherService(AbstractTeacherService, GenericService):
         teacher = self._get_teacher(column='id', value=id)
         return self.validator.serialize(data=teacher)
 
-    def _get_teacher(self, column: str, value: UUID | str) -> dict:
+    def _get_teacher(self, column: str, value: UUID | str) -> Teacher:
         if self._teacher_exists(column=column, value=value):
             self._log.debug(f'Getting Teacher with {column}: {value}.')
             return self.session.query(Teacher).filter(Teacher.__table__.columns[column] == value).one()
@@ -193,8 +209,18 @@ class TeacherService(AbstractTeacherService, GenericService):
 
     def _delete_teacher(self, id: UUID) -> None:
         if self._teacher_exists(column='id', value=id):
-            user = self.session.query(Teacher).filter(Teacher.id == id).one()
+            teacher = self.session.query(Teacher).filter(Teacher.id == id).one()
             # Soft deleting Teacher object.
-            user.delete()
+            teacher.delete()
             self.session.commit()
             self._log.debug(f'Teacher with id: "{id}" deleted.')
+
+    def _update_teacher(self, id: UUID, data: dict) -> dict:
+        teacher = self.validator.deserialize(data=data)
+        db_teacher = self._get_teacher(column='id', value=id)
+        db_teacher.qualification = teacher['qualification']
+        db_teacher.working_since = teacher['working_since']
+        self.session.commit()
+        self.session.refresh(db_teacher)
+        self._log.debug(f'Teacher with id: "{id}" updated.')
+        return self.validator.serialize(data=db_teacher)

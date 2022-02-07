@@ -19,9 +19,7 @@ RESPONSE_USER_INVALID_PAYLOAD = {
     'username': ['Missing data for required field.'],
 }
 RESPONSE_USER_DUPLICATE_USERNAME = {
-    'message': 'ERROR:  duplicate key value violates unique constraint '
-    '"Users_username_key"\n'
-    f'DETAIL:  Key (username)=({request_test_user_data.ADD_USER_TEST_DATA["username"]}) already exists.\n'
+    'message': f'User with username: {request_test_user_data.ADD_USER_TEST_DATA["username"]} already exists.',
 }
 RESPONSE_USER_UPDATE_TEST_DATA = {
     'id': ANY,
