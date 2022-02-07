@@ -59,6 +59,17 @@ class AbstractStudentService(metaclass=abc.ABCMeta):
         """
         return self._get_student_by_id(id)
 
+    def delete_student(self, id: UUID) -> None:
+        """Delete Student object from the database.
+
+        Args:
+            id: UUID of Student object.
+
+        Returns:
+        Nothing.
+        """
+        return self._delete_student(id)
+
     @abc.abstractclassmethod
     def _get_students(self) -> None:
         pass
@@ -69,6 +80,10 @@ class AbstractStudentService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _get_student_by_id(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _delete_student(self, id: UUID) -> None:
         pass
 
 
@@ -167,11 +182,19 @@ class StudentService(AbstractStudentService, GenericService):
         StudentNotFoundError exception if object not present in Student model.
 
         Returns:
-        bool of Teacher object existence.
+        bool of Student object existence.
         """
-        self._log.debug(f'Checking if Teacher with {column}: {value} exists.')
+        self._log.debug(f'Checking if Student with {column}: {value} exists.')
         q = self.session.query(Student).filter(Student.__table__.columns[column] == value)
         obj_exists = self.session.query(q.exists()).scalar()
         if not obj_exists:
             raise StudentNotFoundError(f'Student with {column}: {value} not found.')
         return True
+
+    def _delete_student(self, id: UUID) -> None:
+        if self._student_exists(column='id', value=id):
+            student = self.session.query(Student).filter(Student.id == id).one()
+            # Soft deleting Student object.
+            student.delete()
+            self.session.commit()
+            self._log.debug(f'Student with id: {id} deleted.')
