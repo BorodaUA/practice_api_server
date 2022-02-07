@@ -59,6 +59,17 @@ class AbstractTeacherService(metaclass=abc.ABCMeta):
         """
         return self._get_teacher_by_id(id)
 
+    def delete_teacher(self, id: UUID) -> None:
+        """Delete Teacher object from the database.
+
+        Args:
+            id: UUID of Teacher object.
+
+        Returns:
+        Nothing.
+        """
+        return self._delete_teacher(id)
+
     @abc.abstractclassmethod
     def _get_teachers(self) -> None:
         pass
@@ -69,6 +80,10 @@ class AbstractTeacherService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _get_teacher_by_id(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _delete_teacher(self, id: UUID) -> None:
         pass
 
 
@@ -154,6 +169,7 @@ class TeacherService(AbstractTeacherService, GenericService):
 
     def _get_teacher(self, column: str, value: UUID | str) -> dict:
         if self._teacher_exists(column=column, value=value):
+            self._log.debug(f'Getting Teacher with {column}: {value}.')
             return self.session.query(Teacher).filter(Teacher.__table__.columns[column] == value).one()
 
     def _teacher_exists(self, column: str, value: str) -> bool:
@@ -174,3 +190,11 @@ class TeacherService(AbstractTeacherService, GenericService):
         if not obj_exists:
             raise TeacherNotFoundError(f'Teacher with {column}: {value} not found.')
         return True
+
+    def _delete_teacher(self, id: UUID) -> None:
+        if self._teacher_exists(column='id', value=id):
+            user = self.session.query(Teacher).filter(Teacher.id == id).one()
+            # Soft deleting Teacher object.
+            user.delete()
+            self.session.commit()
+            self._log.debug(f'Teacher with id: "{id}" deleted.')

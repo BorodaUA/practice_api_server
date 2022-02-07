@@ -2,12 +2,15 @@ from flask import request
 
 from auth.routers import auth_bp
 from auth.utils.jwt import auth_token_verifier
+from teachers.routers import teachers_bp
+from teachers.utils.jwt import teachers_token_verifier
 from users.routers import users_bp
 from users.utils.jwt import users_token_verifier
 
 JWT_VERIFIERS = {
     users_bp.name: users_token_verifier,
     auth_bp.name: auth_token_verifier,
+    teachers_bp.name: teachers_token_verifier,
 }
 
 

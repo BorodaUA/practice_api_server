@@ -2,6 +2,8 @@ from uuid import UUID
 
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
+from flask_jwt_extended import jwt_required
+
 from common.constants.http import HttpStatusCodeConstants
 from teachers.schemas import TeacherInputSchema, TeacherOutputSchema
 from teachers.services import TeacherService
@@ -53,3 +55,18 @@ def get_teacher(id: UUID) -> Response:
         output_schema=TeacherOutputSchema(many=False),
     ).get_teacher_by_id(id=id)
     return make_response(jsonify(teacher), HttpStatusCodeConstants.HTTP_200_OK.value)
+
+
+@teachers_bp.delete('/<uuid:id>')
+@jwt_required()
+def delete_teacher(id: UUID) -> Response:
+    """DELETE '/teachers/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Teacher object.
+
+    Returns:
+    http response with no data and 204 status code.
+    """
+    TeacherService(session=g.db_session).delete_teacher(id=id)
+    return make_response('', HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value)
