@@ -112,7 +112,7 @@ class PutUsersTestCase(TestMixin, TestCase):
         self.assertEqual(1, self.db_session.query(User).count())
 
     def test_put_users_updating_other_user_data(self) -> None:
-        """Test PUT '/users/{id}' endpoint updating other's user information"""
+        """Test PUT '/users/{id}' endpoint updating other's user information."""
         self.add_authenticated_user()
         random_db_user = self.add_random_user_to_db()
         url = url_for('users.put_user', id=random_db_user.id)
@@ -139,10 +139,10 @@ class DeleteUsersTestCase(TestMixin, TestCase):
         self.assertEqual(0, self.db_session.query(User).count())
 
     def test_delete_users_deleting_other_user_data(self) -> None:
-        """Test DELETE '/users/{id}' endpoint deleting other's user information"""
+        """Test DELETE '/users/{id}' endpoint deleting other's user information."""
         self.add_authenticated_user()
         random_db_user = self.add_random_user_to_db()
-        url = url_for('users.put_user', id=random_db_user.id)
+        url = url_for('users.delete_user', id=random_db_user.id)
         response = self.client.delete(url)
         response_data = response.get_json()
         expected_result = response_test_user_data.RESPONSE_USER_UNAUTHORIZED_UPDATE

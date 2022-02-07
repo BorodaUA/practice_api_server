@@ -125,3 +125,25 @@ class TestMixin:
 
     def _add_teacher_to_db(self, data: dict) -> Teacher:
         return TeacherService(session=self.db_session)._save_teacher_data(data)
+
+    def add_authenticated_teacher(self) -> Teacher:
+        """Test fixture adds authorization cookies to the test client and return Teacher object.
+
+        Returns:
+        Teacher object.
+        """
+        auth_user = self.add_authenticated_user()
+        teacher_data = request_test_teacher_data.ADD_TEACHER_TEST_DATA
+        teacher_data['id'] = auth_user.id
+        return self._add_teacher_to_db(data=teacher_data)
+
+    def add_random_teacher_to_db(self) -> Teacher:
+        """Test fixture adds random generated teacher data to the db.
+
+        Returns:
+        Teacher object with random data.
+        """
+        random_user = self.add_random_user_to_db()
+        teacher_data = request_test_teacher_data.ADD_TEACHER_TEST_DATA
+        teacher_data['id'] = random_user.id
+        return self._add_teacher_to_db(data=teacher_data)

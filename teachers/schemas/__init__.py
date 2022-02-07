@@ -16,7 +16,7 @@ class TeacherBaseSchema(Schema):
             ),
         ],
     )
-    working_since = fields.Date()
+    working_since = fields.Date(required=True)
 
 
 class TeacherInputSchema(TeacherBaseSchema):

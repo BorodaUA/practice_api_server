@@ -59,3 +59,87 @@ class GetTeacherTestCase(TestMixin, TestCase):
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(Teacher).count())
+
+
+class PostTeachersTestCase(TestMixin, TestCase):
+    """Tests for POST '/teachers' endpoint."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.url = url_for('teachers.post_teachers')
+
+    def test_post_teachers_valid_payload(self) -> None:
+        """Test POST '/teachers' endpoint with valid json payload."""
+        db_user = self.add_user_to_db()
+        payload_data = request_test_teacher_data.ADD_TEACHER_TEST_DATA
+        payload_data['id'] = db_user.id
+        response = self.client.post(self.url, json=payload_data)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_TEST_DATA
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_201_CREATED.value, response.status_code)
+        self.assertEqual(1, self.db_session.query(Teacher).count())
+
+    def test_post_teachers_invalid_json_payload(self) -> None:
+        """Test POST '/teachers' endpoint with invalid empty json payload."""
+        response = self.client.post(self.url, json=request_test_teacher_data.ADD_TEACHER_EMPTY_TEST_DATA)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_INVALID_PAYLOAD
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value, response.status_code)
+        self.assertEqual(0, self.db_session.query(Teacher).count())
+
+
+class PutTeachersTestCase(TestMixin, TestCase):
+    """Tests for PUT '/teachers/{id}' endpoint."""
+
+    def test_put_teachers_valid_payload_and_user_authenticated(self) -> None:
+        """Test PUT '/teachers/{id}' endpoint with valid payload and valid auth cookies."""
+        db_teacher = self.add_authenticated_teacher()
+        url = url_for('teachers.put_teacher', id=db_teacher.id)
+        response = self.client.put(url, json=request_test_teacher_data.UPDATE_TEACHER_TEST_DATA)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_UPDATE_TEST_DATA
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
+        self.assertEqual(1, self.db_session.query(Teacher).count())
+
+    def test_put_teachers_updating_other_teacher_data(self) -> None:
+        """Test PUT '/teachers/{id}' endpoint updating other's teacher information."""
+        self.add_authenticated_teacher()
+        random_db_teacher = self.add_random_teacher_to_db()
+        url = url_for('teachers.put_teacher', id=random_db_teacher.id)
+        response = self.client.put(url, json=request_test_teacher_data.UPDATE_TEACHER_TEST_DATA)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_UNAUTHORIZED_UPDATE
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value, response.status_code)
+        self.assertEqual(2, self.db_session.query(Teacher).count())
+
+
+class DeleteTeachersTestCase(TestMixin, TestCase):
+    """Tests for DELETE '/teachers/{id}' endpoint."""
+
+    def test_delete_teachers_teacher_authenticated_and_deleting_himself(self) -> None:
+        """Test DELETE '/teachers/{id}' endpoint with valid auth cookies, teacher deleting himself."""
+        db_teacher = self.add_authenticated_teacher()
+        url = url_for('teachers.delete_teacher', id=db_teacher.id)
+        self.assertEqual(1, self.db_session.query(Teacher).count())
+        response = self.client.delete(url)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_DELETE
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value, response.status_code)
+        self.assertEqual(0, self.db_session.query(Teacher).count())
+
+    def test_delete_teachers_deleting_other_teacher_data(self) -> None:
+        """Test DELETE '/teachers/{id}' endpoint deleting other's teacher information."""
+        self.add_authenticated_teacher()
+        random_db_teacher = self.add_random_teacher_to_db()
+        url = url_for('teachers.delete_teacher', id=random_db_teacher.id)
+        response = self.client.delete(url)
+        response_data = response.get_json()
+        expected_result = response_test_teacher_data.RESPONSE_TEACHER_UNAUTHORIZED_DELETE
+        self.assertEqual(expected_result, response_data)
+        self.assertEqual(HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value, response.status_code)
+        self.assertEqual(2, self.db_session.query(Teacher).count())
