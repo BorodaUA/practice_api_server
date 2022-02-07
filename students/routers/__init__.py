@@ -5,7 +5,7 @@ from flask import Blueprint, Response, g, jsonify, make_response, request
 from flask_jwt_extended import jwt_required
 
 from common.constants.http import HttpStatusCodeConstants
-from students.schemas import StudentInputSchema, StudentOutputSchema
+from students.schemas import StudentInputSchema, StudentOutputSchema, StudentUpdateSchema
 from students.services import StudentService
 
 students_bp = Blueprint('students', __name__, url_prefix='/students')
@@ -70,3 +70,22 @@ def delete_student(id: UUID) -> Response:
     """
     StudentService(session=g.db_session).delete_student(id=id)
     return make_response('', HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value)
+
+
+@students_bp.put('/<uuid:id>')
+@jwt_required()
+def put_student(id: UUID) -> Response:
+    """PUT '/students/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Student object.
+
+    Returns:
+    http response with json data: single updated Student model objects serialized with StudentOutputSchema.
+    """
+    student = StudentService(
+        session=g.db_session,
+        input_schema=StudentUpdateSchema(many=False),
+        output_schema=StudentOutputSchema(many=False),
+    ).update_student(id=id, data=request.get_json())
+    return make_response(jsonify(student), HttpStatusCodeConstants.HTTP_200_OK.value)

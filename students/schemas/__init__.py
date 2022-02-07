@@ -32,4 +32,4 @@ class StudentOutputSchema(StudentBaseSchema):
 class StudentUpdateSchema(StudentBaseSchema):
     """Teacher Update schema for Teacher model."""
 
-    student_since = fields.Date()
+    student_since = fields.Date(required=True)

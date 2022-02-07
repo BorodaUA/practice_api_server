@@ -70,6 +70,18 @@ class AbstractStudentService(metaclass=abc.ABCMeta):
         """
         return self._delete_student(id)
 
+    def update_student(self, id: UUID, data: dict) -> dict:
+        """Update Student object in the database.
+
+        Args:
+            id: UUID of Student object.
+            data: dict from flask request json payload.
+
+        Returns:
+        Updated Student object from the database.
+        """
+        return self._update_student(id, data)
+
     @abc.abstractclassmethod
     def _get_students(self) -> None:
         pass
@@ -84,6 +96,10 @@ class AbstractStudentService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _delete_student(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _update_student(self, id: UUID, data: dict) -> None:
         pass
 
 
@@ -198,3 +214,12 @@ class StudentService(AbstractStudentService, GenericService):
             student.delete()
             self.session.commit()
             self._log.debug(f'Student with id: {id} deleted.')
+
+    def _update_student(self, id: UUID, data: dict) -> dict:
+        student = self.validator.deserialize(data=data)
+        db_student = self._get_student(column='id', value=id)
+        db_student.student_since = student['student_since']
+        self.session.commit()
+        self.session.refresh(db_student)
+        self._log.debug(f'Student with id: {id} updated.')
+        return self.validator.serialize(data=db_student)
