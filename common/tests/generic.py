@@ -11,9 +11,11 @@ from app import create_app
 from app.config import TestingConfig
 from auth.services import AuthService
 from common.constants.auth import AuthJWTConstants
+from common.tests.test_data.students import request_test_student_data
 from common.tests.test_data.teachers import request_test_teacher_data
 from common.tests.test_data.users import request_test_user_data
 from db import Base, get_session
+from students.services import StudentService
 from teachers.models import Teacher
 from teachers.services import TeacherService
 from users.models import User
@@ -147,3 +149,17 @@ class TestMixin:
         teacher_data = request_test_teacher_data.ADD_TEACHER_TEST_DATA
         teacher_data['id'] = random_user.id
         return self._add_teacher_to_db(data=teacher_data)
+
+    def add_student_to_db(self) -> Teacher:
+        """Test fixture adds static test Student data in the test db.
+
+        Returns:
+        Student object from the test db.
+        """
+        user = self.add_user_to_db()
+        student_data = request_test_student_data.ADD_STUDENT_TEST_DATA
+        student_data['id'] = user.id
+        return self._add_student_to_db(data=student_data)
+
+    def _add_student_to_db(self, data: dict) -> Teacher:
+        return StudentService(session=self.db_session)._save_student_data(data)
