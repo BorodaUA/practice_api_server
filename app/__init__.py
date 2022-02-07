@@ -10,7 +10,12 @@ from auth.utils.exceptions import AuthUserInvalidPasswordException, invalid_user
 from common.constants.api import ApiVersion
 from db import create_db_engine, get_session
 from students.routers import students_bp
-from students.utils.exceptions import TeacherExistsError, teacher_exists_error_handler
+from students.utils.exceptions import (
+    StudentNotFoundError,
+    TeacherExistsError,
+    student_not_found_error_handler,
+    teacher_exists_error_handler,
+)
 from teachers.routers import teachers_bp
 from teachers.utils.exceptions import (
     StudentExistsError,
@@ -70,4 +75,5 @@ def error_handler_register(app: Flask) -> Flask:
     app.register_error_handler(StudentExistsError, student_exists_error_handler)
     app.register_error_handler(TeacherExistsError, teacher_exists_error_handler)
     app.register_error_handler(TeacherNotFoundError, teacher_not_found_error_handler)
+    app.register_error_handler(StudentNotFoundError, student_not_found_error_handler)
     return app

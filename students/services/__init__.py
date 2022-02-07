@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Type
+from uuid import UUID
 import abc
 
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +11,7 @@ from common.constants.models import StudentsModelConstants
 from students.models import Student
 from students.schemas import StudentBaseSchema
 from students.services.serializers import StudentSerializer
-from students.utils.exceptions import TeacherExistsError
+from students.utils.exceptions import StudentNotFoundError, TeacherExistsError
 from teachers.models import Teacher
 from utils.exceptions import parse_integrity_error
 from utils.logging import setup_logging
@@ -47,12 +48,27 @@ class AbstractStudentService(metaclass=abc.ABCMeta):
         """
         return self._add_student(data)
 
+    def get_student_by_id(self, id: UUID) -> dict:
+        """Query database and return single Student objects from the db filtered by id.
+
+        Args:
+            id: UUID of Student object.
+
+        Returns:
+        Student object serialized with StudentOutputSchema.
+        """
+        return self._get_student_by_id(id)
+
     @abc.abstractclassmethod
     def _get_students(self) -> None:
         pass
 
     @abc.abstractclassmethod
     def _add_student(self, data: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_student_by_id(self, id: UUID) -> None:
         pass
 
 
@@ -131,3 +147,31 @@ class StudentService(AbstractStudentService, GenericService):
         else:
             card_id = self._create_card_id(card_id=StudentsModelConstants.CARD_ID_DEFAULT_NUMBER.value)
         return card_id
+
+    def _get_student_by_id(self, id: UUID) -> dict:
+        student = self._get_student(column='id', value=id)
+        return self.validator.serialize(data=student)
+
+    def _get_student(self, column: str, value: UUID | str) -> Student:
+        if self._student_exists(column=column, value=value):
+            self._log.debug(f'Getting Student with {column}: {value}.')
+            return self.session.query(Student).filter(Student.__table__.columns[column] == value).one()
+
+    def _student_exists(self, column: str, value: str) -> bool:
+        """Check if Student object exists in the db.
+
+        Args:
+            column: name of column in the Student model.
+            value: to find in the Student model.
+        Raises:
+        StudentNotFoundError exception if object not present in Student model.
+
+        Returns:
+        bool of Teacher object existence.
+        """
+        self._log.debug(f'Checking if Teacher with {column}: {value} exists.')
+        q = self.session.query(Student).filter(Student.__table__.columns[column] == value)
+        obj_exists = self.session.query(q.exists()).scalar()
+        if not obj_exists:
+            raise StudentNotFoundError(f'Student with {column}: {value} not found.')
+        return True
