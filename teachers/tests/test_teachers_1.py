@@ -20,7 +20,7 @@ class GetTeachersTestCase(TestMixin, TestCase):
         """Test GET '/teachers' endpoint with no teacher's data added to the db."""
         response = self.client.get(self.url)
         response_data = response.get_json()
-        expected_result = []
+        expected_result = response_test_teacher_data.RESPONSE_TEACHERS_EMPTY_DB
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(0, self.db_session.query(Teacher).count())
@@ -30,7 +30,7 @@ class GetTeachersTestCase(TestMixin, TestCase):
         self.add_teacher_to_db()
         response = self.client.get(self.url)
         response_data = response.get_json()
-        expected_result = response_test_teacher_data.RESPONSE_TEACHERS_TEST_DATA
+        expected_result = response_test_teacher_data.RESPONSE_GET_TEACHERS
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(Teacher).count())
@@ -55,7 +55,7 @@ class GetTeacherTestCase(TestMixin, TestCase):
         url = url_for('teachers.get_teacher', id=db_teacher.id)
         response = self.client.get(url)
         response_data = response.get_json()
-        expected_result = response_test_teacher_data.RESPONSE_TEACHER_TEST_DATA
+        expected_result = response_test_teacher_data.RESPONSE_GET_TEACHER
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(Teacher).count())
@@ -75,7 +75,7 @@ class PostTeachersTestCase(TestMixin, TestCase):
         payload_data['id'] = db_user.id
         response = self.client.post(self.url, json=payload_data)
         response_data = response.get_json()
-        expected_result = response_test_teacher_data.RESPONSE_TEACHER_TEST_DATA
+        expected_result = response_test_teacher_data.RESPONSE_POST_TEACHERS
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_201_CREATED.value, response.status_code)
         self.assertEqual(1, self.db_session.query(Teacher).count())
@@ -96,8 +96,8 @@ class PostTeachersTestCase(TestMixin, TestCase):
         payload_data['id'] = db_student.id
         response = self.client.post(self.url, json=payload_data)
         response_data = response.get_json()
-        response_test_teacher_data.RESPONSE_USER_ALREADY_STUDENT['message'] = (
-            response_test_teacher_data.RESPONSE_USER_ALREADY_STUDENT['message'].format(
+        response_test_teacher_data.RESPONSE_USER_ALREADY_STUDENT['errors']['message'] = (
+            response_test_teacher_data.RESPONSE_USER_ALREADY_STUDENT['errors']['message'].format(
                 first_id=db_student.id, second_id=db_student.id,
             )
         )

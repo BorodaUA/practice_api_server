@@ -20,7 +20,7 @@ class GetUsersTestCase(TestMixin, TestCase):
         """Test GET '/users' endpoint with no user's data added to the db."""
         response = self.client.get(self.url)
         response_data = response.get_json()
-        expected_result = []
+        expected_result = response_test_user_data.RESPONSE_USERS_EMPTY_DB
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(0, self.db_session.query(User).count())
@@ -30,7 +30,7 @@ class GetUsersTestCase(TestMixin, TestCase):
         self.add_user_to_db()
         response = self.client.get(self.url)
         response_data = response.get_json()
-        expected_result = response_test_user_data.RESPONSE_USERS_TEST_DATA
+        expected_result = response_test_user_data.RESPONSE_GET_USERS
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(User).count())
@@ -55,7 +55,7 @@ class GetUserTestCase(TestMixin, TestCase):
         url = url_for('users.get_user', id=db_user.id)
         response = self.client.get(url)
         response_data = response.get_json()
-        expected_result = response_test_user_data.RESPONSE_USER_TEST_DATA
+        expected_result = response_test_user_data.RESPONSE_GET_USER
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(User).count())
@@ -72,7 +72,7 @@ class PostUsersTestCase(TestMixin, TestCase):
         """Test POST '/users' endpoint with valid payload and no user's data added to the db."""
         response = self.client.post(self.url, json=request_test_user_data.ADD_USER_TEST_DATA)
         response_data = response.get_json()
-        expected_result = response_test_user_data.RESPONSE_USER_TEST_DATA
+        expected_result = response_test_user_data.RESPONSE_POST_USER
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_201_CREATED.value, response.status_code)
         self.assertEqual(1, self.db_session.query(User).count())
