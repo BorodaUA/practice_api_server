@@ -19,6 +19,8 @@ from auth.schemas import AuthBaseSchema
 from auth.services.serializers import AuthSerializer
 from auth.utils.exceptions import AuthUserInvalidPasswordException
 from common.constants.auth import AuthJWTConstants
+from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 from users.services import UserService
 from utils.logging import setup_logging
 
@@ -80,8 +82,17 @@ class AuthService(AbstractAuthService):
             )
             response_tokens = {'access_token': access_token, 'refresh_token': refresh_token}
             self.validator.serialize(data=response_tokens)
-            response = jsonify(response_tokens)
-
+            STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+            response = ResponseBaseSchema().load(
+                {
+                    'status': {
+                        'code': STATUS_CODE,
+                    },
+                    'data': response_tokens,
+                    'errors': [],
+                }
+            )
+            response = jsonify(response)
             set_access_cookies(response, access_token)
             set_refresh_cookies(response, refresh_token)
             self._log.debug(f'User with username: {db_user.username} logged in.')
@@ -107,7 +118,17 @@ class AuthService(AbstractAuthService):
         user_id = get_jwt_identity()
         response_message = {'message': 'User successfully logged out.'}
         self.validator.serialize(data=response_message)
-        response = jsonify(response_message)
+        STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+        response = ResponseBaseSchema().load(
+            {
+                'status': {
+                    'code': STATUS_CODE,
+                },
+                'data': response_message,
+                'errors': [],
+            }
+        )
+        response = jsonify(response)
         unset_access_cookies(response=response)
         unset_refresh_cookies(response=response)
         self._log.debug(f'User with id: {user_id} successfully logged out.')

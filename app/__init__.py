@@ -24,8 +24,8 @@ from teachers.utils.exceptions import (
     teacher_not_found_error_handler,
 )
 from users.routers import users_bp
-from users.utils.exceptions import UserNotFoundError, user_not_found_error_handler, user_validation_error_handler
-from utils.exceptions import duplicate_error_handler
+from users.utils.exceptions import UserNotFoundError, user_not_found_error_handler
+from utils.exceptions import duplicate_error_handler, marshmallow_validation_error_handler
 from utils.jwt import generic_token_verifier
 
 
@@ -68,7 +68,7 @@ def blueprints_register(app: Flask) -> Flask:
 
 def error_handler_register(app: Flask) -> Flask:
     """Registers error handlers in the flask app."""
-    app.register_error_handler(ValidationError, user_validation_error_handler)
+    app.register_error_handler(ValidationError, marshmallow_validation_error_handler)
     app.register_error_handler(UserNotFoundError, user_not_found_error_handler)
     app.register_error_handler(IntegrityError, duplicate_error_handler)
     app.register_error_handler(AuthUserInvalidPasswordException, invalid_user_password_error_handler)

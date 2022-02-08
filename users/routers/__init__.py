@@ -5,6 +5,7 @@ from flask import Blueprint, Response, g, jsonify, make_response, request
 from flask_jwt_extended import jwt_required
 
 from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 from users.schemas import UserInputSchema, UserOutputSchema, UserUpdateSchema
 from users.services import UserService
 
@@ -18,7 +19,17 @@ def get_users() -> Response:
         session=g.db_session,
         output_schema=UserOutputSchema(many=True),
     ).get_users()
-    return make_response(jsonify(users))
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': users,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @users_bp.post('/')
@@ -29,7 +40,17 @@ def post_users() -> Response:
         input_schema=UserInputSchema(many=False),
         output_schema=UserOutputSchema(many=False),
     ).add_user(user=request.get_json())
-    return make_response(jsonify(user), HttpStatusCodeConstants.HTTP_201_CREATED.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_201_CREATED.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': user,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @users_bp.delete('/<uuid:id>')
@@ -47,7 +68,17 @@ def get_user(id: UUID) -> Response:
         session=g.db_session,
         output_schema=UserOutputSchema(many=False),
     ).get_user_by_id(id=id)
-    return make_response(jsonify(user), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': user,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @users_bp.put('/<uuid:id>')
@@ -59,4 +90,14 @@ def put_user(id: UUID) -> Response:
         input_schema=UserUpdateSchema(many=False),
         output_schema=UserOutputSchema(many=False),
     ).update_user(id=id, user=request.get_json())
-    return make_response(jsonify(user), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': user,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)

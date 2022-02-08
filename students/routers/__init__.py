@@ -5,6 +5,7 @@ from flask import Blueprint, Response, g, jsonify, make_response, request
 from flask_jwt_extended import jwt_required
 
 from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 from students.schemas import StudentInputSchema, StudentOutputSchema, StudentUpdateSchema
 from students.services import StudentService
 
@@ -22,7 +23,17 @@ def get_students():
         session=g.db_session,
         output_schema=StudentOutputSchema(many=True),
     ).get_students()
-    return make_response(jsonify(students), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': students,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @students_bp.post('/')
@@ -37,7 +48,17 @@ def post_students() -> Response:
         input_schema=StudentInputSchema(many=False),
         output_schema=StudentOutputSchema(many=False),
     ).add_student(request.get_json())
-    return make_response(jsonify(student), HttpStatusCodeConstants.HTTP_201_CREATED.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_201_CREATED.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @students_bp.get('/<uuid:id>')
@@ -54,7 +75,17 @@ def get_student(id: UUID) -> Response:
         session=g.db_session,
         output_schema=StudentOutputSchema(many=False),
     ).get_student_by_id(id=id)
-    return make_response(jsonify(student), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @students_bp.delete('/<uuid:id>')
@@ -88,4 +119,14 @@ def put_student(id: UUID) -> Response:
         input_schema=StudentUpdateSchema(many=False),
         output_schema=StudentOutputSchema(many=False),
     ).update_student(id=id, data=request.get_json())
-    return make_response(jsonify(student), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)

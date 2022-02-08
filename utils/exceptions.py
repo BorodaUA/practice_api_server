@@ -2,10 +2,12 @@ import re
 
 from flask import Response, jsonify, make_response
 
+from marshmallow.exceptions import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from common.constants.exceptions import SqlalchemyExceptionConstants
 from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 
 
 def parse_integrity_error(error: IntegrityError) -> tuple:
@@ -33,7 +35,29 @@ def duplicate_error_handler(error: IntegrityError) -> Response:
     """Custom IntegrityError handler return http Response with error message."""
     table_name, field, value = parse_integrity_error(error=error)
     DUPLICATE_ERROR_MESSAGE = f'{table_name} with {field}: {value} already exists.'
-    return make_response(
-        jsonify({'message': DUPLICATE_ERROR_MESSAGE}),
-        HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value,
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': [],
+            'errors': {'message': DUPLICATE_ERROR_MESSAGE},
+        }
     )
+    return make_response(jsonify(response), STATUS_CODE)
+
+
+def marshmallow_validation_error_handler(error: ValidationError) -> Response:
+    """Custom marshmallow ValidationError handler return http Response with error message."""
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': [],
+            'errors': {'message': error.messages},
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)

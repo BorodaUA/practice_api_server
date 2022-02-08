@@ -1,6 +1,7 @@
 from flask import Response, jsonify, make_response
 
 from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 
 
 class TeacherNotFoundError(Exception):
@@ -20,10 +21,17 @@ def student_exists_error_handler(error: StudentExistsError) -> Response:
     Returns:
     http Response with formatted error message.
     """
-    return make_response(
-        jsonify({'message': str(error)}),
-        HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value,
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': [],
+            'errors': {'message': str(error)},
+        }
     )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 def teacher_not_found_error_handler(error: TeacherNotFoundError) -> Response:
@@ -35,7 +43,14 @@ def teacher_not_found_error_handler(error: TeacherNotFoundError) -> Response:
     Returns:
     http Response with formatted error message.
     """
-    return make_response(
-        jsonify({'message': str(error)}),
-        HttpStatusCodeConstants.HTTP_404_NOT_FOUND.value,
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_404_NOT_FOUND.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': [],
+            'errors': {'message': str(error)},
+        }
     )
+    return make_response(jsonify(response), STATUS_CODE)
