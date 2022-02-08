@@ -59,7 +59,7 @@ class GetAuthMeTestCase(TestMixin, TestCase):
         self.add_authenticated_user()
         response = self.client.get(self.url)
         response_data = response.get_json()
-        expected_result = response_test_user_data.RESPONSE_USER_TEST_DATA
+        expected_result = response_test_user_data.RESPONSE_GET_USER
         self.assertEqual(expected_result, response_data)
         self.assertEqual(HttpStatusCodeConstants.HTTP_200_OK.value, response.status_code)
         self.assertEqual(1, self.db_session.query(User).count())

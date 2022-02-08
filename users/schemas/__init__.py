@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, validate
 
-from common.constants.users import UserSchemaConstants
+from common.constants.schemas import UserSchemaConstants
 
 
 class UserBaseSchema(Schema):

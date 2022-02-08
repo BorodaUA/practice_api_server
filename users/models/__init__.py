@@ -3,15 +3,16 @@ import uuid
 from sqla_softdelete import SoftDeleteMixin
 from sqlalchemy import Boolean, Column, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
-from common.constants.users import UserModelConstants
+from common.constants.models import UserModelConstants
 from db import Base
 
 
 class User(SoftDeleteMixin, Base):
     """A model representing a user."""
 
-    __tablename__ = "Users"
+    __tablename__ = 'users'
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     first_name = Column(String(UserModelConstants.CHAR_SIZE_64.value), nullable=True)

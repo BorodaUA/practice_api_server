@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required
 from auth.schemas import AuthUserInputSchema, AuthUserLogoutSchema, AuthUserOutputSchema
 from auth.services import AuthService
 from common.constants.http import HttpStatusCodeConstants
+from common.schemas.response import ResponseBaseSchema
 from users.schemas import UserOutputSchema
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -26,7 +27,17 @@ def login() -> Response:
 def me() -> Response:
     """GET '/me' endpoint view function."""
     user = AuthService(session=g.db_session, output_schema=UserOutputSchema(many=False)).me()
-    return make_response(jsonify(user), HttpStatusCodeConstants.HTTP_200_OK.value)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': user,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
 
 
 @auth_bp.post('/logout')
