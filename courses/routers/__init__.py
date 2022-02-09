@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
 from common.constants.http import HttpStatusCodeConstants
@@ -51,6 +53,33 @@ def post_courses() -> Response:
                 'code': STATUS_CODE,
             },
             'data': teacher,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
+
+
+@courses_bp.get('/<uuid:id>')
+def get_course(id: UUID) -> Response:
+    """GET '/courses/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Course object.
+
+    Returns:
+    http response with json data: single Course model objects serialized with CourseOutputSchema.
+    """
+    course = CourseService(
+        session=g.db_session,
+        output_schema=CourseOutputSchema(many=False),
+    ).get_course_by_id(id=id)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': course,
             'errors': [],
         }
     )

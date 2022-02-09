@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import Type
+from uuid import UUID
 import abc
 
 from sqlalchemy.orm import scoped_session
@@ -8,6 +9,7 @@ from common.abstract.services import GenericService
 from courses.models import Course
 from courses.schemas import CourseBaseSchema
 from courses.services.serializers import CourseSerializer
+from courses.utils.exceptions import CourseNotFoundError
 from students.services import StudentService
 from utils.logging import setup_logging
 
@@ -44,12 +46,27 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         """
         return self._add_course(data)
 
+    def get_course_by_id(self, id: UUID) -> dict:
+        """Query database and return single Course objects from the db filtered by id.
+
+        Args:
+            id: UUID of Course object.
+
+        Returns:
+        Course object serialized with CourseOutputSchema.
+        """
+        return self._get_course_by_id(id)
+
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
         pass
 
     @abc.abstractclassmethod
-    def _add_course(self) -> None:
+    def _add_course(self, data: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_course_by_id(self, id: UUID) -> None:
         pass
 
 
@@ -62,7 +79,6 @@ class CourseService(AbstractCourseService, GenericService):
         return self.validator.serialize(courses)
 
     def _add_course(self, data: dict) -> dict:
-        self._log.debug('Saving course to the db.')
         course = self.validator.deserialize(data=data)
         db_course = self._save_course_data(data=course)
         return self.validator.serialize(data=db_course)
@@ -83,3 +99,31 @@ class CourseService(AbstractCourseService, GenericService):
         self.session.commit()
         self.session.refresh(db_course)
         return db_course
+
+    def _get_course_by_id(self, id: UUID) -> dict:
+        course = self._get_course(column='id', value=id)
+        return self.validator.serialize(data=course)
+
+    def _get_course(self, column: str, value: UUID | str) -> Course:
+        if self._course_exists(column=column, value=value):
+            self._log.debug(f'Getting Course with {column}: {value}.')
+            return self.session.query(Course).filter(Course.__table__.columns[column] == value).one()
+
+    def _course_exists(self, column: str, value: str) -> bool:
+        """Check if Course object exists in the db.
+
+        Args:
+            column: name of column in the Course model.
+            value: to find in the Course model.
+        Raises:
+        CourseNotFoundError exception if object not present in Course model.
+
+        Returns:
+        bool of Course object existence.
+        """
+        self._log.debug(f'Checking if Course with {column}: {value} exists.')
+        q = self.session.query(Course).filter(Course.__table__.columns[column] == value)
+        obj_exists = self.session.query(q.exists()).scalar()
+        if not obj_exists:
+            raise CourseNotFoundError(f'Course with {column}: {value} not found.')
+        return True
