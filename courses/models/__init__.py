@@ -1,7 +1,7 @@
 import uuid
 
 from sqla_softdelete import SoftDeleteMixin
-from sqlalchemy import Column, Date, DateTime, ForeignKey, String, func
+from sqlalchemy import Column, Date, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import backref, relationship
 
@@ -26,6 +26,9 @@ class Course(SoftDeleteMixin, Base):
     """A model representing a course."""
 
     __tablename__ = 'courses'
+    __table_args__ = (
+        UniqueConstraint('title', 'code', name='_title_code_uc'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
 

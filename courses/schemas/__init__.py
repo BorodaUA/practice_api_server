@@ -1,12 +1,12 @@
 from marshmallow import Schema, fields, validate
 
 from common.constants.schemas import CourseSchemaConstants
+from teachers.schemas import TeacherOutputSchema
 
 
 class CourseBaseSchema(Schema):
     """Course Base schema for Course model."""
 
-    teacher_id = fields.UUID()
     title = fields.Str(
         required=True,
         validate=[
@@ -31,9 +31,10 @@ class CourseBaseSchema(Schema):
 
 class CourseInputSchema(CourseBaseSchema):
     """Course Input schema for Course model."""
-    pass
+    teacher_id = fields.UUID()
 
 
 class CourseOutputSchema(CourseBaseSchema):
     """Course Output schema for Course model."""
     id = fields.UUID()
+    teacher = fields.Nested(TeacherOutputSchema)

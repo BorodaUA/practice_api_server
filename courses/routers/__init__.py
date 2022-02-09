@@ -33,7 +33,7 @@ def get_courses() -> Response:
 
 
 @courses_bp.post('/')
-def post_teachers() -> Response:
+def post_courses() -> Response:
     """POST '/courses' endpoint view function.
 
     Returns:

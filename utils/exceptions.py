@@ -58,7 +58,7 @@ def get_error_message(error: IntegrityError) -> str:
     """
     table_name, field, value = parse_integrity_error(error=error)
     SQLALCHEMY_INTEGRITY_ERROR_MAP = {
-        'UniqueViolation': f'{table_name} with {field}: {value} already exists.',
+        'UniqueViolation': f'{table_name} with {field}: {value} already exists.' if table_name else error.orig.pgerror,
         'ForeignKeyViolation': f'Foreign key violation {field}: {value} is not present in table.',
     }
     return SQLALCHEMY_INTEGRITY_ERROR_MAP[error.orig.__class__.__name__]
