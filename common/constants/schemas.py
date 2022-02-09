@@ -32,3 +32,14 @@ class StudentSchemaConstants(enum.Enum):
     CHAR_SIZE_6 = 6
     CHAR_SIZE_64 = 64
     CHAR_SIZE_256 = 256
+
+
+class CourseSchemaConstants(enum.Enum):
+    """Course schema constants."""
+    # Numerics.
+    CHAR_SIZE_2 = 2
+    CHAR_SIZE_3 = 3
+    CHAR_SIZE_6 = 6
+    CHAR_SIZE_16 = 16
+    CHAR_SIZE_64 = 64
+    CHAR_SIZE_256 = 256

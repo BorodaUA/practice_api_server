@@ -17,6 +17,7 @@ class Student(SoftDeleteMixin, Base):
     card_id = Column(String(StudentsModelConstants.CHAR_SIZE_64.value), nullable=True, unique=True)
     student_since = Column(Date, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+    courses = relationship('CourseStudentAssociation', back_populates='student')
 
     def __str__(self):
         return f'Student: id={self.id}, card_id={self.card_id}, student_since={self.student_since}'
