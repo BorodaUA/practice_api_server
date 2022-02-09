@@ -57,6 +57,18 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         """
         return self._get_course_by_id(id)
 
+    def update_course(self, id: UUID, data: dict) -> dict:
+        """Update Course object in the database.
+
+        Args:
+            id: UUID of Course object.
+            data: dict from flask request json payload.
+
+        Returns:
+        Updated Course object from the database.
+        """
+        return self._update_course(id, data)
+
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
         pass
@@ -67,6 +79,10 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _get_course_by_id(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _update_course(self, id: UUID, data: dict) -> None:
         pass
 
 
@@ -127,3 +143,15 @@ class CourseService(AbstractCourseService, GenericService):
         if not obj_exists:
             raise CourseNotFoundError(f'Course with {column}: {value} not found.')
         return True
+
+    def _update_course(self, id: UUID, data: dict) -> dict:
+        course = self.validator.deserialize(data=data)
+        db_course = self._get_course(column='id', value=id)
+        db_course.title = course['title']
+        db_course.code = course['code']
+        db_course.start_date = course['start_date']
+        db_course.end_date = course['end_date']
+        self.session.commit()
+        self.session.refresh(db_course)
+        self._log.debug(f'Course with id: {id} updated.')
+        return self.validator.serialize(data=db_course)

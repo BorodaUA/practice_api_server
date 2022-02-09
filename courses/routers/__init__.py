@@ -2,9 +2,11 @@ from uuid import UUID
 
 from flask import Blueprint, Response, g, jsonify, make_response, request
 
+from flask_jwt_extended import jwt_required
+
 from common.constants.http import HttpStatusCodeConstants
 from common.schemas.response import ResponseBaseSchema
-from courses.schemas import CourseInputSchema, CourseOutputSchema
+from courses.schemas import CourseInputSchema, CourseOutputSchema, CourseUpdateSchema
 from courses.services import CourseService
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
@@ -80,6 +82,35 @@ def get_course(id: UUID) -> Response:
                 'code': STATUS_CODE,
             },
             'data': course,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
+
+
+@courses_bp.put('/<uuid:id>')
+@jwt_required()
+def put_course(id: UUID) -> Response:
+    """PUT '/courses/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Course object.
+
+    Returns:
+    http response with json data: single updated Course model objects serialized with CourseOutputSchema.
+    """
+    student = CourseService(
+        session=g.db_session,
+        input_schema=CourseUpdateSchema(many=False),
+        output_schema=CourseOutputSchema(many=False),
+    ).update_course(id=id, data=request.get_json())
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': student,
             'errors': [],
         }
     )

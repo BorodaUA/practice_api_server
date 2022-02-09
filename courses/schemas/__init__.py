@@ -38,3 +38,8 @@ class CourseOutputSchema(CourseBaseSchema):
     """Course Output schema for Course model."""
     id = fields.UUID()
     teacher = fields.Nested(TeacherOutputSchema)
+
+
+class CourseUpdateSchema(CourseBaseSchema):
+    """Course Update schema for Course model."""
+    pass
