@@ -115,3 +115,18 @@ def put_course(id: UUID) -> Response:
         }
     )
     return make_response(jsonify(response), STATUS_CODE)
+
+
+@courses_bp.delete('/<uuid:id>')
+@jwt_required()
+def delete_course(id: UUID) -> Response:
+    """DELETE '/courses/{id}' endpoint view function.
+
+    Args:
+        id: UUID of Course object.
+
+    Returns:
+    http response with no data and 204 status code.
+    """
+    CourseService(session=g.db_session).delete_course(id=id)
+    return make_response('', HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value)

@@ -69,6 +69,17 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         """
         return self._update_course(id, data)
 
+    def delete_course(self, id: UUID) -> None:
+        """Delete Course object from the database.
+
+        Args:
+            id: UUID of Course object.
+
+        Returns:
+        Nothing.
+        """
+        return self._delete_course(id)
+
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
         pass
@@ -83,6 +94,10 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _update_course(self, id: UUID, data: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _delete_course(self, id: UUID) -> None:
         pass
 
 
@@ -155,3 +170,11 @@ class CourseService(AbstractCourseService, GenericService):
         self.session.refresh(db_course)
         self._log.debug(f'Course with id: {id} updated.')
         return self.validator.serialize(data=db_course)
+
+    def _delete_course(self, id: UUID) -> None:
+        if self._course_exists(column='id', value=id):
+            course = self.session.query(Course).filter(Course.id == id).one()
+            # Soft deleting Course object.
+            course.delete()
+            self.session.commit()
+            self._log.debug(f'Course with id: {id} deleted.')
