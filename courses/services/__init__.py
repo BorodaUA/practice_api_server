@@ -11,6 +11,7 @@ from courses.schemas import CourseBaseSchema
 from courses.services.serializers import CourseSerializer
 from courses.utils.exceptions import CourseNotFoundError
 from students.services import StudentService
+from students.utils.exceptions import StudentNotFoundError
 from utils.logging import setup_logging
 
 
@@ -99,6 +100,14 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         """
         return self._add_course_student(id, data)
 
+    def get_course_student_by_id(self, id: UUID, student_id: UUID) -> dict:
+        """Query database and return Course's Student object from the db.
+
+        Returns:
+        Course's Student object serialized with StudentOutputSchema.
+        """
+        return self._get_course_student_by_id(id, student_id)
+
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
         pass
@@ -125,6 +134,10 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _add_course_student(self, id: UUID, data: dict) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_course_student_by_id(self, id: UUID, student_id: UUID) -> None:
         pass
 
 
@@ -236,3 +249,33 @@ class CourseService(AbstractCourseService, GenericService):
         student_id = self.validator.deserialize(data=data)
         db_course = self._save_course_student_data(id, student_id)
         return self.validator.serialize(data=db_course.students[-1].student)
+
+    def _get_course_student_by_id(self, id: UUID, student_id: UUID) -> dict:
+        id = str(id)
+        student_id = str(student_id)
+        if self._course_student_exists(course_id=id, student_id=student_id):
+            association = self.session.query(CourseStudentAssociation).filter_by(
+                course_id=id,
+                student_id=student_id,
+            ).one()
+            return self.validator.serialize(association.student)
+
+    def _course_student_exists(self, course_id: str, student_id: str) -> bool:
+        """Checks if Course and Student objects were added to association table CourseStudentAssociation.
+
+        Args:
+            course_id: Course object UUID.
+            student_id: Student object UUID.
+
+        Returns:
+        book of objects existence in CourseStudentAssociation table.
+        """
+        if self._course_exists(column='id', value=course_id):
+            q = self.session.query(CourseStudentAssociation).filter_by(
+                course_id=course_id,
+                student_id=student_id,
+            )
+            obj_exists = self.session.query(q.exists()).scalar()
+            if not obj_exists:
+                raise StudentNotFoundError(f'Student with id: {student_id} not found in Course with id: {course_id}.')
+            return True

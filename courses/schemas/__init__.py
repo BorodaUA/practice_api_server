@@ -1,6 +1,8 @@
 from marshmallow import Schema, fields, validate
 
 from common.constants.schemas import CourseSchemaConstants
+from courses.models import Course
+from students.schemas import StudentOutputSchema
 from teachers.schemas import TeacherOutputSchema
 
 
@@ -38,6 +40,20 @@ class CourseOutputSchema(CourseBaseSchema):
     """Course Output schema for Course model."""
     id = fields.UUID()
     teacher = fields.Nested(TeacherOutputSchema)
+    students = fields.Method('get_associated_students')
+
+    def get_associated_students(self, obj: Course) -> list[dict] | list:
+        """Custom method for CourseOutputSchema students field.
+
+        Args:
+            obj: Course object.
+
+        Returns:
+        List of Student objects from CourseStudentAssociation table serialized with StudentOutputSchema.
+        """
+        if not obj.students:
+            return []
+        return [StudentOutputSchema(many=False).dump(association.student) for association in obj.students]
 
 
 class CourseUpdateSchema(CourseBaseSchema):

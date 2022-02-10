@@ -180,3 +180,27 @@ def post_course_students(id: UUID) -> Response:
         }
     )
     return make_response(jsonify(response), STATUS_CODE)
+
+
+@courses_bp.get('/<uuid:id>/students/<uuid:student_id>')
+def get_course_student(id: UUID, student_id: UUID) -> Response:
+    """GET '/courses/{id}/students/{id}' endpoint view function.
+
+    Returns:
+    http response with json data: Course model Student object serialized with StudentOutputSchema.
+    """
+    course_student = CourseService(
+        session=g.db_session,
+        output_schema=StudentOutputSchema(many=False),
+    ).get_course_student_by_id(id, student_id)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': course_student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
