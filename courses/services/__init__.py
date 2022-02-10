@@ -6,7 +6,7 @@ import abc
 from sqlalchemy.orm import scoped_session
 
 from common.abstract.services import GenericService
-from courses.models import Course
+from courses.models import Course, CourseStudentAssociation
 from courses.schemas import CourseBaseSchema
 from courses.services.serializers import CourseSerializer
 from courses.utils.exceptions import CourseNotFoundError
@@ -36,7 +36,7 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         return self._get_courses()
 
     def add_course(self, data: dict) -> dict:
-        """Getting user dict payload and saving it in the Course table.
+        """Getting course dict payload and saving it in the Course table.
 
         Args:
             data: dict from flask request json payload.
@@ -80,6 +80,25 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
         """
         return self._delete_course(id)
 
+    def get_course_students(self, id: UUID) -> list[dict]:
+        """Query database and return list Course object students from the db.
+
+        Returns:
+        List of Course object students serialized with StudentOutputSchema.
+        """
+        return self._get_course_students(id)
+
+    def add_course_student(self, id: UUID, data: dict) -> dict:
+        """Getting student id from json payload and saving it in associate table for Course-Students relationship.
+
+        Args:
+            data: dict from flask request json payload.
+
+        Returns:
+        Single Student object serialized with StudentOutputSchema.
+        """
+        return self._add_course_student(id, data)
+
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
         pass
@@ -98,6 +117,14 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _delete_course(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _get_course_students(self, id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _add_course_student(self, id: UUID, data: dict) -> None:
         pass
 
 
@@ -178,3 +205,34 @@ class CourseService(AbstractCourseService, GenericService):
             course.delete()
             self.session.commit()
             self._log.debug(f'Course with id: {id} deleted.')
+
+    def _get_course_students(self, id: UUID) -> list[dict]:
+        self._log.debug('Getting all Course students from the db.')
+        course = self._get_course(column='id', value=id)
+        return self.validator.serialize([association.student for association in course.students])
+
+    def _save_course_student_data(self, id: UUID, data: dict) -> Course:
+        """Saves course student data in the CourseStudentAssociation model.
+
+        Args:
+            id: Course object UUID.
+            data: deserialized course dict.
+
+        Returns:
+        Saved in the db Course object.
+        """
+        db_student = self.student_service._get_student(column='id', value=str(data['id']))
+        db_course = self._get_course(column='id', value=id)
+        course_student_association = CourseStudentAssociation()
+        course_student_association.student = db_student
+        db_course.students.append(course_student_association)
+        self.session.add(db_course)
+        self.session.commit()
+        self.session.refresh(db_course)
+        self._log.debug(f'Student object with id: {str(data["id"])} added to Course with id: {id}.')
+        return db_course
+
+    def _add_course_student(self, id: UUID, data: dict) -> dict:
+        student_id = self.validator.deserialize(data=data)
+        db_course = self._save_course_student_data(id, student_id)
+        return self.validator.serialize(data=db_course.students[-1].student)

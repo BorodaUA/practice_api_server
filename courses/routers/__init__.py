@@ -8,6 +8,7 @@ from common.constants.http import HttpStatusCodeConstants
 from common.schemas.response import ResponseBaseSchema
 from courses.schemas import CourseInputSchema, CourseOutputSchema, CourseUpdateSchema
 from courses.services import CourseService
+from students.schemas import StudentBaseSchema, StudentOutputSchema
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 
@@ -43,7 +44,7 @@ def post_courses() -> Response:
     Returns:
     http response with json data: newly created Course model object serialized with CourseOutputSchema.
     """
-    teacher = CourseService(
+    course = CourseService(
         session=g.db_session,
         input_schema=CourseInputSchema(many=False),
         output_schema=CourseOutputSchema(many=False),
@@ -54,7 +55,7 @@ def post_courses() -> Response:
             'status': {
                 'code': STATUS_CODE,
             },
-            'data': teacher,
+            'data': course,
             'errors': [],
         }
     )
@@ -99,7 +100,7 @@ def put_course(id: UUID) -> Response:
     Returns:
     http response with json data: single updated Course model objects serialized with CourseOutputSchema.
     """
-    student = CourseService(
+    course = CourseService(
         session=g.db_session,
         input_schema=CourseUpdateSchema(many=False),
         output_schema=CourseOutputSchema(many=False),
@@ -110,7 +111,7 @@ def put_course(id: UUID) -> Response:
             'status': {
                 'code': STATUS_CODE,
             },
-            'data': student,
+            'data': course,
             'errors': [],
         }
     )
@@ -130,3 +131,52 @@ def delete_course(id: UUID) -> Response:
     """
     CourseService(session=g.db_session).delete_course(id=id)
     return make_response('', HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value)
+
+
+@courses_bp.get('/<uuid:id>/students')
+def get_course_students(id: UUID) -> Response:
+    """GET '/courses/{id}/students' endpoint view function.
+
+    Returns:
+    http response with json data: list of Course model Student objects serialized with StudentOutputSchema.
+    """
+    course_students = CourseService(
+        session=g.db_session,
+        output_schema=StudentOutputSchema(many=True),
+    ).get_course_students(id)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': course_students,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
+
+
+@courses_bp.post('/<uuid:id>/students')
+def post_course_students(id: UUID) -> Response:
+    """POST '/courses/{id}/students' endpoint view function.
+
+    Returns:
+    http response with json data: Course model Student object serialized with StudentOutputSchema.
+    """
+    course_student = CourseService(
+        session=g.db_session,
+        input_schema=StudentBaseSchema(many=False),
+        output_schema=StudentOutputSchema(many=False),
+    ).add_course_student(id=id, data=request.get_json())
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_201_CREATED.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': course_student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)

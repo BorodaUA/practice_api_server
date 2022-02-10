@@ -13,6 +13,9 @@ class CourseStudentAssociation(Base):
     """Many-to-Many table for Course and Student models association."""
 
     __tablename__ = 'course_student_association'
+    __table_args__ = (
+        UniqueConstraint('course_id', 'student_id', name='_course_student_uc'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     course_id = Column(UUID(as_uuid=True), ForeignKey('courses.id'), nullable=False)
@@ -20,6 +23,9 @@ class CourseStudentAssociation(Base):
     created_at = Column(DateTime, server_default=func.now())
     course = relationship('Course', back_populates='students')
     student = relationship('Student', back_populates='courses')
+
+    def __repr__(self):
+        return f'CourseStudentAssociation: course_id={self.course_id}, student_id={self.student_id}'
 
 
 class Course(SoftDeleteMixin, Base):
