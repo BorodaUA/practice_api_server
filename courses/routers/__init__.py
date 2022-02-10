@@ -11,6 +11,8 @@ from courses.services import CourseService
 from students.schemas import StudentBaseSchema, StudentOutputSchema
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
+course_students_bp = Blueprint('course_students', __name__, '/students')
+courses_bp.register_blueprint(course_students_bp)
 
 
 @courses_bp.get('/')
@@ -133,7 +135,7 @@ def delete_course(id: UUID) -> Response:
     return make_response('', HttpStatusCodeConstants.HTTP_204_NO_CONTENT.value)
 
 
-@courses_bp.get('/<uuid:id>/students')
+@course_students_bp.get('/<uuid:id>/students')
 def get_course_students(id: UUID) -> Response:
     """GET '/courses/{id}/students' endpoint view function.
 
@@ -157,7 +159,7 @@ def get_course_students(id: UUID) -> Response:
     return make_response(jsonify(response), STATUS_CODE)
 
 
-@courses_bp.post('/<uuid:id>/students')
+@course_students_bp.post('/<uuid:id>/students')
 def post_course_students(id: UUID) -> Response:
     """POST '/courses/{id}/students' endpoint view function.
 
@@ -182,7 +184,7 @@ def post_course_students(id: UUID) -> Response:
     return make_response(jsonify(response), STATUS_CODE)
 
 
-@courses_bp.get('/<uuid:id>/students/<uuid:student_id>')
+@course_students_bp.get('/<uuid:id>/students/<uuid:student_id>')
 def get_course_student(id: UUID, student_id: UUID) -> Response:
     """GET '/courses/{id}/students/{id}' endpoint view function.
 
@@ -200,6 +202,31 @@ def get_course_student(id: UUID, student_id: UUID) -> Response:
                 'code': STATUS_CODE,
             },
             'data': course_student,
+            'errors': [],
+        }
+    )
+    return make_response(jsonify(response), STATUS_CODE)
+
+
+@course_students_bp.delete('/<uuid:id>/students/<uuid:student_id>')
+@jwt_required()
+def delete_course_student(id: UUID, student_id: UUID) -> Response:
+    """DELETE '/courses/{id}/students/{id}' endpoint view function.
+
+    Returns:
+    http response with json data: single Course model objects serialized with CourseOutputSchema.
+    """
+    course = CourseService(
+        session=g.db_session,
+        output_schema=CourseOutputSchema(many=False),
+    ).delete_course_student(id, student_id)
+    STATUS_CODE = HttpStatusCodeConstants.HTTP_200_OK.value
+    response = ResponseBaseSchema().load(
+        {
+            'status': {
+                'code': STATUS_CODE,
+            },
+            'data': course,
             'errors': [],
         }
     )

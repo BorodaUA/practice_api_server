@@ -2,8 +2,8 @@ from flask import request
 
 from auth.routers import auth_bp
 from auth.utils.jwt import auth_token_verifier
-from courses.routers import courses_bp
-from courses.utils.jwt import course_token_verifier
+from courses.routers import course_students_bp, courses_bp
+from courses.utils.jwt import course_students_token_verifier, course_token_verifier
 from students.routers import students_bp
 from students.utils.jwt import student_token_verifier
 from teachers.routers import teachers_bp
@@ -17,6 +17,7 @@ JWT_VERIFIERS = {
     teachers_bp.name: teacher_token_verifier,
     students_bp.name: student_token_verifier,
     courses_bp.name: course_token_verifier,
+    f'{courses_bp.name}.{course_students_bp.name}': course_students_token_verifier,
 }
 
 

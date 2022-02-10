@@ -103,10 +103,26 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
     def get_course_student_by_id(self, id: UUID, student_id: UUID) -> dict:
         """Query database and return Course's Student object from the db.
 
+        Args:
+            id: Course object UUID.
+            student_id: Student object UUID.
+
         Returns:
         Course's Student object serialized with StudentOutputSchema.
         """
         return self._get_course_student_by_id(id, student_id)
+
+    def delete_course_student(self, id: UUID, student_id: UUID) -> dict:
+        """Delete Student object from association CourseStudentAssociation table.
+
+        Args:
+            id: Course object UUID.
+            student_id: Student object UUID.
+
+        Returns:
+        Course object serialized with CourseOutputSchema.
+        """
+        return self._delete_course_student(id, student_id)
 
     @abc.abstractclassmethod
     def _get_courses(self) -> None:
@@ -138,6 +154,10 @@ class AbstractCourseService(metaclass=abc.ABCMeta):
 
     @abc.abstractclassmethod
     def _get_course_student_by_id(self, id: UUID, student_id: UUID) -> None:
+        pass
+
+    @abc.abstractclassmethod
+    def _delete_course_student(self, id: UUID, student_id: UUID) -> None:
         pass
 
 
@@ -250,7 +270,7 @@ class CourseService(AbstractCourseService, GenericService):
         db_course = self._save_course_student_data(id, student_id)
         return self.validator.serialize(data=db_course.students[-1].student)
 
-    def _get_course_student_by_id(self, id: UUID, student_id: UUID) -> dict:
+    def _get_course_student(self, id: UUID, student_id: UUID) -> CourseStudentAssociation:
         id = str(id)
         student_id = str(student_id)
         if self._course_student_exists(course_id=id, student_id=student_id):
@@ -258,7 +278,11 @@ class CourseService(AbstractCourseService, GenericService):
                 course_id=id,
                 student_id=student_id,
             ).one()
-            return self.validator.serialize(association.student)
+            return association
+
+    def _get_course_student_by_id(self, id: UUID, student_id: UUID) -> dict:
+        association = self._get_course_student(id, student_id)
+        return self.validator.serialize(association.student)
 
     def _course_student_exists(self, course_id: str, student_id: str) -> bool:
         """Checks if Course and Student objects were added to association table CourseStudentAssociation.
@@ -279,3 +303,12 @@ class CourseService(AbstractCourseService, GenericService):
             if not obj_exists:
                 raise StudentNotFoundError(f'Student with id: {student_id} not found in Course with id: {course_id}.')
             return True
+
+    def _delete_course_student(self, id: UUID, student_id: UUID) -> dict:
+        if self._course_student_exists(course_id=id, student_id=student_id):
+            association = self._get_course_student(id, student_id)
+            # Hard deleting CourseStudentAssociation object.
+            self.session.delete(association)
+            self.session.commit()
+            db_course = self._get_course(column='id', value=id)
+            return self.validator.serialize(db_course)

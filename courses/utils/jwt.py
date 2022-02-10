@@ -17,3 +17,18 @@ def course_token_verifier(jwt_header: dict, jwt_payload: dict) -> bool:
     if jwt_payload['sub'] == str(course.teacher_id):
         return True
     return False
+
+
+def course_students_token_verifier(jwt_header: dict, jwt_payload: dict) -> bool:
+    """Checks if Student.id from request args matches the id from jwt_payload.
+
+    Args:
+        jwt_header: JWT headers dict.
+        jwt_payload: JWT decoded payload dict.
+
+    Returns:
+    bool of comparison request args student_id and decoded jwt data.
+    """
+    if jwt_payload['sub'] == str(request.view_args['student_id']):
+        return True
+    return False

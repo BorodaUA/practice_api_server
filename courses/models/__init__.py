@@ -3,7 +3,7 @@ import uuid
 from sqla_softdelete import SoftDeleteMixin
 from sqlalchemy import Column, Date, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
 from common.constants.models import CourseModelConstants
 from db import Base
