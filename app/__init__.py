@@ -18,6 +18,7 @@ from students.utils.exceptions import (
     student_not_found_error_handler,
     teacher_exists_error_handler,
 )
+from subjects.routers import subjects_bp
 from teachers.routers import teachers_bp
 from teachers.utils.exceptions import (
     StudentExistsError,
@@ -66,6 +67,7 @@ def blueprints_register(app: Flask) -> Flask:
     app.register_blueprint(teachers_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{teachers_bp.url_prefix}')
     app.register_blueprint(students_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{students_bp.url_prefix}')
     app.register_blueprint(courses_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{courses_bp.url_prefix}')
+    app.register_blueprint(subjects_bp, url_prefix=f'/api/v{ApiVersion.V1.value}/{subjects_bp.url_prefix}')
     return app
 
 

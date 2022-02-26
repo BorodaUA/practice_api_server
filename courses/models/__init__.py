@@ -3,6 +3,7 @@ import uuid
 from sqla_softdelete import SoftDeleteMixin
 from sqlalchemy import Column, Date, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
 from common.constants.models import CourseModelConstants
@@ -21,7 +22,7 @@ class CourseStudentAssociation(Base):
     course_id = Column(UUID(as_uuid=True), ForeignKey('courses.id'), nullable=False)
     student_id = Column(UUID(as_uuid=True), ForeignKey('students.id'), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
-    course = relationship('Course', back_populates='students')
+    course = relationship('Course', back_populates='students_association')
     student = relationship('Student', back_populates='courses')
 
     def __repr__(self):
@@ -41,7 +42,8 @@ class Course(SoftDeleteMixin, Base):
     teacher_id = Column(UUID(as_uuid=True), ForeignKey('teachers.id'), nullable=False)
     teacher = relationship('Teacher', back_populates='courses')
 
-    students = relationship('CourseStudentAssociation', back_populates='course')
+    students_association = relationship('CourseStudentAssociation', back_populates='course')
+    students = association_proxy('students_association', 'student')
 
     title = Column(String(CourseModelConstants.CHAR_SIZE_256.value), nullable=False)
     code = Column(String(CourseModelConstants.CHAR_SIZE_16.value), nullable=False)
