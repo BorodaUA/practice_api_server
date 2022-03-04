@@ -19,6 +19,7 @@ from students.utils.exceptions import (
     teacher_exists_error_handler,
 )
 from subjects.routers import subjects_bp
+from subjects.utils.exceptions import SubjectNotFoundError, subject_not_found_error_handler
 from teachers.routers import teachers_bp
 from teachers.utils.exceptions import (
     StudentExistsError,
@@ -82,4 +83,5 @@ def error_handler_register(app: Flask) -> Flask:
     app.register_error_handler(TeacherNotFoundError, teacher_not_found_error_handler)
     app.register_error_handler(StudentNotFoundError, student_not_found_error_handler)
     app.register_error_handler(CourseNotFoundError, course_not_found_error_handler)
+    app.register_error_handler(SubjectNotFoundError, subject_not_found_error_handler)
     return app

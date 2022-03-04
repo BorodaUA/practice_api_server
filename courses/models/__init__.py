@@ -33,9 +33,6 @@ class Course(SoftDeleteMixin, Base):
     """A model representing a course."""
 
     __tablename__ = 'courses'
-    __table_args__ = (
-        UniqueConstraint('title', 'code', name='_title_code_uc'),
-    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
 
@@ -45,11 +42,12 @@ class Course(SoftDeleteMixin, Base):
     students_association = relationship('CourseStudentAssociation', back_populates='course')
     students = association_proxy('students_association', 'student')
 
-    title = Column(String(CourseModelConstants.CHAR_SIZE_256.value), nullable=False)
-    code = Column(String(CourseModelConstants.CHAR_SIZE_16.value), nullable=False)
+    subject_id = Column(UUID(as_uuid=True), ForeignKey('subjects.id'), nullable=False, unique=True)
+    subject = relationship('Subject', back_populates='course')
+
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
     def __repr__(self):
-        return f'Course: id={self.id}, title={self.title}, start_date={self.start_date}, end_date={self.end_date}'
+        return f'Course: id={self.id}, start_date={self.start_date}, end_date={self.end_date}'

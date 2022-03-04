@@ -185,7 +185,7 @@ class CourseService(AbstractCourseService, GenericService):
         """
         course = deepcopy(data)
         db_course = Course(**course)
-        self._log.debug(f'Creating course with title: {course["title"]}')
+        self._log.debug(f'Creating course with subject id: {course["subject_id"]}')
         self.session.add(db_course)
         self.session.commit()
         self.session.refresh(db_course)
@@ -222,8 +222,6 @@ class CourseService(AbstractCourseService, GenericService):
     def _update_course(self, id: UUID, data: dict) -> dict:
         course = self.validator.deserialize(data=data)
         db_course = self._get_course(column='id', value=id)
-        db_course.title = course['title']
-        db_course.code = course['code']
         db_course.start_date = course['start_date']
         db_course.end_date = course['end_date']
         self.session.commit()
@@ -242,7 +240,7 @@ class CourseService(AbstractCourseService, GenericService):
     def _get_course_students(self, id: UUID) -> list[dict]:
         self._log.debug('Getting all Course students from the db.')
         course = self._get_course(column='id', value=id)
-        return self.validator.serialize([association.student for association in course.students])
+        return self.validator.serialize(course.students)
 
     def _save_course_student_data(self, id: UUID, data: dict) -> Course:
         """Saves course student data in the CourseStudentAssociation model.
@@ -258,7 +256,7 @@ class CourseService(AbstractCourseService, GenericService):
         db_course = self._get_course(column='id', value=id)
         course_student_association = CourseStudentAssociation()
         course_student_association.student = db_student
-        db_course.students.append(course_student_association)
+        db_course.students_association.append(course_student_association)
         self.session.add(db_course)
         self.session.commit()
         self.session.refresh(db_course)
@@ -268,7 +266,7 @@ class CourseService(AbstractCourseService, GenericService):
     def _add_course_student(self, id: UUID, data: dict) -> dict:
         student_id = self.validator.deserialize(data=data)
         db_course = self._save_course_student_data(id, student_id)
-        return self.validator.serialize(data=db_course.students[-1].student)
+        return self.validator.serialize(data=db_course.students[-1])
 
     def _get_course_student(self, id: UUID, student_id: UUID) -> CourseStudentAssociation:
         id = str(id)
