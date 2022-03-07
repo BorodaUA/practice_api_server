@@ -14,6 +14,6 @@ def subject_token_verifier(jwt_header: dict, jwt_payload: dict) -> bool:
     bool of comparison Subject.course.teacher_id and decoded jwt data.
     """
     subject = SubjectService(session=g.db_session)._get_subject(column='id', value=str(request.view_args['id']))
-    if jwt_payload['sub'] == str(subject.course.teacher_id):
+    if jwt_payload['sub'] == str(subject.teacher_id):
         return True
     return False

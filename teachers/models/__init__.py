@@ -19,6 +19,7 @@ class Teacher(SoftDeleteMixin, Base):
     working_since = Column(Date, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     courses = relationship('Course', back_populates='teacher')
+    subjects = relationship('Subject', back_populates='teacher')
 
     def __str__(self):
         return f'Teacher: id={self.id}, card_id={self.card_id}, qualification={self.qualification}'

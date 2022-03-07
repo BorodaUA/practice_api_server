@@ -1,7 +1,7 @@
 import uuid
 
 from sqla_softdelete import SoftDeleteMixin
-from sqlalchemy import Column, DateTime, String, UniqueConstraint, func
+from sqlalchemy import Column, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import backref, relationship
 
@@ -25,6 +25,9 @@ class Subject(SoftDeleteMixin, Base):
     course = relationship('Course', backref=backref('course'), uselist=False)
 
     created_at = Column(DateTime, server_default=func.now())
+
+    teacher_id = Column(UUID(as_uuid=True), ForeignKey('teachers.id'), nullable=False)
+    teacher = relationship('Teacher', back_populates='subjects')
 
     def __repr__(self):
         return f'Subject: id={self.id}, title={self.title}, code={self.code}'

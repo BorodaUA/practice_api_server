@@ -28,7 +28,7 @@ class SubjectBaseSchema(Schema):
 
 class SubjectInputSchema(SubjectBaseSchema):
     """Subject Input schema for Subject model."""
-    pass
+    teacher_id = fields.UUID(required=True)
 
 
 class SubjectOutputSchema(SubjectBaseSchema):

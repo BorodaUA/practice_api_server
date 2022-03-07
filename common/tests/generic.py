@@ -13,6 +13,7 @@ from auth.services import AuthService
 from common.constants.auth import AuthJWTConstants
 from common.tests.test_data.courses import request_test_course_data
 from common.tests.test_data.students import request_test_student_data
+from common.tests.test_data.subjects import request_test_subject_data
 from common.tests.test_data.teachers import request_test_teacher_data
 from common.tests.test_data.users import request_test_user_data
 from courses.models import Course
@@ -20,6 +21,8 @@ from courses.services import CourseService
 from db import Base, get_session
 from students.models import Student
 from students.services import StudentService
+from subjects.models import Subject
+from subjects.services import SubjectService
 from teachers.models import Teacher
 from teachers.services import TeacherService
 from users.models import User
@@ -203,3 +206,32 @@ class TestMixin:
 
     def _add_course_to_db(self, data: dict) -> Course:
         return CourseService(session=self.db_session)._save_course_data(data)
+
+    def add_subject_to_db(self) -> Course:
+        """Test fixture adds static Subject test data in the test db.
+
+        Returns:
+        Subject object from the db.
+        """
+        db_teacher = self.add_authenticated_teacher()
+        subject_data = request_test_subject_data.ADD_SUBJECT_TEST_DATA
+        subject_data['teacher_id'] = db_teacher.id
+        return self._add_subject_to_db(data=subject_data)
+
+    def add_random_subject_to_db(self) -> Course:
+        """Test fixture adds random Subject test data in the test db.
+
+        Returns:
+        Subject object from the db.
+        """
+        db_teacher = self.add_random_teacher_to_db()
+        subject_data = {
+            'title': f'test_title_{uuid4()}',
+            'code': f'BIO_{random.randrange(1000, 9999)}',
+            'teacher_id': db_teacher.id,
+        }
+        # subject_data['teacher_id'] = db_teacher.id
+        return self._add_subject_to_db(data=subject_data)
+
+    def _add_subject_to_db(self, data: dict) -> Subject:
+        return SubjectService(session=self.db_session)._save_subject_data(data)
