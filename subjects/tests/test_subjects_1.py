@@ -94,7 +94,7 @@ class PutSubjectTestCase(TestMixin, TestCase):
     """Tests for PUT '/subjects/{id}' endpoint."""
 
     def test_put_subject_valid_payload_and_teacher_authenticated(self) -> None:
-        """Test PUT '/subject/{id}' endpoint with valid payload and auth cookies."""
+        """Test PUT '/subjects/{id}' endpoint with valid payload and auth cookies."""
         db_subject = self.add_subject_to_db()
         url = url_for('subjects.put_subject', id=db_subject.id)
         response = self.client.put(url, json=request_test_subject_data.UPDATE_SUBJECT_TEST_DATA)

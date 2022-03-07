@@ -199,9 +199,24 @@ class TestMixin:
         Returns:
         Course object from the db.
         """
-        teacher = self.add_teacher_to_db()
+        db_subject = self.add_subject_to_db()
         course_data = request_test_course_data.ADD_COURSE_TEST_DATA
-        course_data['teacher_id'] = teacher.id
+        course_data['teacher_id'] = db_subject.teacher_id
+        course_data['subject_id'] = db_subject.id
+        return self._add_course_to_db(data=course_data)
+
+    def add_random_course_to_db(self) -> Course:
+        """Test fixture adds random Course test data in the test db.
+
+        Returns:
+        Course object from the db.
+        """
+        db_subject = self.add_random_subject_to_db()
+        course_data = {}
+        course_data['start_date'] = f'20{random.randrange(10, 15)}-01-09'
+        course_data['end_date'] = f'20{random.randrange(16, 21)}-01-06'
+        course_data['teacher_id'] = db_subject.teacher_id
+        course_data['subject_id'] = db_subject.id
         return self._add_course_to_db(data=course_data)
 
     def _add_course_to_db(self, data: dict) -> Course:
@@ -230,7 +245,6 @@ class TestMixin:
             'code': f'BIO_{random.randrange(1000, 9999)}',
             'teacher_id': db_teacher.id,
         }
-        # subject_data['teacher_id'] = db_teacher.id
         return self._add_subject_to_db(data=subject_data)
 
     def _add_subject_to_db(self, data: dict) -> Subject:

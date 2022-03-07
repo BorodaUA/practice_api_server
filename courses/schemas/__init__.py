@@ -13,8 +13,8 @@ class CourseBaseSchema(Schema):
 
 class CourseInputSchema(CourseBaseSchema):
     """Course Input schema for Course model."""
-    teacher_id = fields.UUID()
-    subject_id = fields.UUID()
+    teacher_id = fields.UUID(required=True)
+    subject_id = fields.UUID(required=True)
 
 
 class CourseOutputSchema(CourseBaseSchema):
