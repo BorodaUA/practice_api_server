@@ -7,12 +7,11 @@ class StudentBaseSchema(Schema):
     """Student Base schema for Student model."""
 
     id = fields.UUID()
-    student_since = fields.Date(required=True)
 
 
 class StudentInputSchema(StudentBaseSchema):
     """Student Input schema for Student model."""
-    pass
+    student_since = fields.Date(required=True)
 
 
 class StudentOutputSchema(StudentBaseSchema):
@@ -27,9 +26,10 @@ class StudentOutputSchema(StudentBaseSchema):
             ),
         ],
     )
+    student_since = fields.Date(required=True)
 
 
 class StudentUpdateSchema(StudentBaseSchema):
-    """Teacher Update schema for Teacher model."""
+    """Student Update schema for Teacher model."""
 
     student_since = fields.Date(required=True)

@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 import random
 
 from flask import Config
@@ -11,12 +11,18 @@ from app import create_app
 from app.config import TestingConfig
 from auth.services import AuthService
 from common.constants.auth import AuthJWTConstants
+from common.tests.test_data.courses import request_test_course_data
 from common.tests.test_data.students import request_test_student_data
+from common.tests.test_data.subjects import request_test_subject_data
 from common.tests.test_data.teachers import request_test_teacher_data
 from common.tests.test_data.users import request_test_user_data
+from courses.models import Course
+from courses.services import CourseService
 from db import Base, get_session
 from students.models import Student
 from students.services import StudentService
+from subjects.models import Subject
+from subjects.services import SubjectService
 from teachers.models import Teacher
 from teachers.services import TeacherService
 from users.models import User
@@ -186,3 +192,84 @@ class TestMixin:
         student_data = request_test_student_data.ADD_STUDENT_TEST_DATA
         student_data['id'] = random_user.id
         return self._add_student_to_db(data=student_data)
+
+    def add_course_to_db(self) -> Course:
+        """Test fixture adds static Course test data in the test db.
+
+        Returns:
+        Course object from the db.
+        """
+        db_subject = self.add_subject_to_db()
+        course_data = request_test_course_data.ADD_COURSE_TEST_DATA
+        course_data['teacher_id'] = db_subject.teacher_id
+        course_data['subject_id'] = db_subject.id
+        return self._add_course_to_db(data=course_data)
+
+    def add_random_course_to_db(self) -> Course:
+        """Test fixture adds random Course test data in the test db.
+
+        Returns:
+        Course object from the db.
+        """
+        db_subject = self.add_random_subject_to_db()
+        course_data = {}
+        course_data['start_date'] = f'20{random.randrange(10, 15)}-01-09'
+        course_data['end_date'] = f'20{random.randrange(16, 21)}-01-06'
+        course_data['teacher_id'] = db_subject.teacher_id
+        course_data['subject_id'] = db_subject.id
+        return self._add_course_to_db(data=course_data)
+
+    def _add_course_to_db(self, data: dict) -> Course:
+        return CourseService(session=self.db_session)._save_course_data(data)
+
+    def add_subject_to_db(self) -> Course:
+        """Test fixture adds static Subject test data in the test db.
+
+        Returns:
+        Subject object from the db.
+        """
+        db_teacher = self.add_authenticated_teacher()
+        subject_data = request_test_subject_data.ADD_SUBJECT_TEST_DATA
+        subject_data['teacher_id'] = db_teacher.id
+        return self._add_subject_to_db(data=subject_data)
+
+    def add_random_subject_to_db(self) -> Course:
+        """Test fixture adds random Subject test data in the test db.
+
+        Returns:
+        Subject object from the db.
+        """
+        db_teacher = self.add_random_teacher_to_db()
+        subject_data = {
+            'title': f'test_title_{uuid4()}',
+            'code': f'BIO_{random.randrange(1000, 9999)}',
+            'teacher_id': db_teacher.id,
+        }
+        return self._add_subject_to_db(data=subject_data)
+
+    def _add_subject_to_db(self, data: dict) -> Subject:
+        return SubjectService(session=self.db_session)._save_subject_data(data)
+
+    def add_student_to_course(self) -> Course:
+        """Test fixture adds authenticated Student object to Course.
+
+        Returns:
+        Course object.
+        """
+        db_course = self.add_random_course_to_db()
+        db_student = self.add_authenticated_student()
+        return self._add_student_to_course(db_course.id, {'id': db_student.id})
+
+    def add_random_student_to_course(self) -> Course:
+        """Test fixture adds random Student object to Course.
+
+        Returns:
+        Course object.
+        """
+        db_course = self.add_random_course_to_db()
+        db_student = self.add_random_student_to_db()
+        return self._add_student_to_course(db_course.id, {'id': db_student.id})
+
+    def _add_student_to_course(self, course: UUID, student: UUID) -> Course:
+        db_course = CourseService(session=self.db_session)._save_course_student_data(course, student)
+        return db_course

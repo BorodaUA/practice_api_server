@@ -36,3 +36,15 @@ class StudentsModelConstants(enum.Enum):
     # Booleans.
     TRUE = True
     FALSE = False
+
+
+class CourseModelConstants(enum.Enum):
+    """Course model constants."""
+    # Numerics.
+    CHAR_SIZE_16 = 16
+    CHAR_SIZE_64 = 64
+    CHAR_SIZE_256 = 256
+
+    # Booleans.
+    TRUE = True
+    FALSE = False

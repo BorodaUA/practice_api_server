@@ -3,7 +3,6 @@ import uuid
 from sqla_softdelete import SoftDeleteMixin
 from sqlalchemy import Boolean, Column, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 
 from common.constants.models import UserModelConstants
 from db import Base

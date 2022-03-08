@@ -4,10 +4,11 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import BaseConfig
+from courses.models import Course
 from db import Base
+from students.models import Student
 from teachers.models import Teacher
 from users.models import User
-from students.models import Student
 
 POSTGRES_DB_URL = (
     f'{BaseConfig.POSTGRES_DIALECT_DRIVER}://{BaseConfig.POSTGRES_DB_USERNAME}:'

@@ -31,10 +31,9 @@ def parse_integrity_error(error: IntegrityError) -> tuple:
     return table_name, field, value
 
 
-def duplicate_error_handler(error: IntegrityError) -> Response:
+def integrity_error_handler(error: IntegrityError) -> Response:
     """Custom IntegrityError handler return http Response with error message."""
-    table_name, field, value = parse_integrity_error(error=error)
-    DUPLICATE_ERROR_MESSAGE = f'{table_name} with {field}: {value} already exists.'
+    ERROR_MESSAGE = get_error_message(error)
     STATUS_CODE = HttpStatusCodeConstants.HTTP_400_BAD_REQUEST.value
     response = ResponseBaseSchema().load(
         {
@@ -42,10 +41,27 @@ def duplicate_error_handler(error: IntegrityError) -> Response:
                 'code': STATUS_CODE,
             },
             'data': [],
-            'errors': {'message': DUPLICATE_ERROR_MESSAGE},
+            'errors': {'message': ERROR_MESSAGE},
         }
     )
     return make_response(jsonify(response), STATUS_CODE)
+
+
+def get_error_message(error: IntegrityError) -> str:
+    """Get formatted error message bases of error.orig type.
+
+    Args:
+        error: raised sqlalchemy IntegrityError.
+
+    Returns:
+    Properly formatted error message.
+    """
+    table_name, field, value = parse_integrity_error(error=error)
+    SQLALCHEMY_INTEGRITY_ERROR_MAP = {
+        'UniqueViolation': f'{table_name} with {field}: {value} already exists.' if table_name else error.orig.pgerror,
+        'ForeignKeyViolation': f'Foreign key violation {field}: {value} is not present in table.',
+    }
+    return SQLALCHEMY_INTEGRITY_ERROR_MAP[error.orig.__class__.__name__]
 
 
 def marshmallow_validation_error_handler(error: ValidationError) -> Response:
