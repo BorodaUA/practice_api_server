@@ -6,9 +6,9 @@ from flask_jwt_extended import jwt_required
 
 from common.constants.http import HttpStatusCodeConstants
 from common.schemas.response import ResponseBaseSchema
-from courses.schemas import CourseInputSchema, CourseOutputSchema, CourseUpdateSchema
+from courses.schemas import CourseInputSchema, CourseOutputSchema, CourseStudentInputSchema, CourseUpdateSchema
 from courses.services import CourseService
-from students.schemas import StudentBaseSchema, StudentOutputSchema
+from students.schemas import StudentOutputSchema
 
 courses_bp = Blueprint('courses', __name__, url_prefix='/courses')
 course_students_bp = Blueprint('course_students', __name__, '/students')
@@ -168,7 +168,7 @@ def post_course_students(id: UUID) -> Response:
     """
     course_student = CourseService(
         session=g.db_session,
-        input_schema=StudentBaseSchema(many=False),
+        input_schema=CourseStudentInputSchema(many=False),
         output_schema=StudentOutputSchema(many=False),
     ).add_course_student(id=id, data=request.get_json())
     STATUS_CODE = HttpStatusCodeConstants.HTTP_201_CREATED.value

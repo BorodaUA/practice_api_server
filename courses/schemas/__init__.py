@@ -28,3 +28,8 @@ class CourseOutputSchema(CourseBaseSchema):
 class CourseUpdateSchema(CourseBaseSchema):
     """Course Update schema for Course model."""
     pass
+
+
+class CourseStudentInputSchema(Schema):
+    """CourseStudent Input schema for Course model."""
+    id = fields.UUID(required=True)

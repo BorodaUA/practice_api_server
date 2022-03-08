@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 import random
 
 from flask import Config
@@ -249,3 +249,27 @@ class TestMixin:
 
     def _add_subject_to_db(self, data: dict) -> Subject:
         return SubjectService(session=self.db_session)._save_subject_data(data)
+
+    def add_student_to_course(self) -> Course:
+        """Test fixture adds authenticated Student object to Course.
+
+        Returns:
+        Course object.
+        """
+        db_course = self.add_random_course_to_db()
+        db_student = self.add_authenticated_student()
+        return self._add_student_to_course(db_course.id, {'id': db_student.id})
+
+    def add_random_student_to_course(self) -> Course:
+        """Test fixture adds random Student object to Course.
+
+        Returns:
+        Course object.
+        """
+        db_course = self.add_random_course_to_db()
+        db_student = self.add_random_student_to_db()
+        return self._add_student_to_course(db_course.id, {'id': db_student.id})
+
+    def _add_student_to_course(self, course: UUID, student: UUID) -> Course:
+        db_course = CourseService(session=self.db_session)._save_course_student_data(course, student)
+        return db_course
